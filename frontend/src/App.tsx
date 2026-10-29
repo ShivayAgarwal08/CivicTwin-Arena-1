@@ -321,6 +321,7 @@ export const App: React.FC = () => {
               zoom={mapZoom}
               onAddInterventionForLink={(lid) => {
                 setSelectedLinkId(lid);
+                setActiveAlternative('HUMAN');
               }}
             />
           </div>

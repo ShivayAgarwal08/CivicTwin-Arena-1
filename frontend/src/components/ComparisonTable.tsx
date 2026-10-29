@@ -288,6 +288,19 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Modeling & Evidence Transparency Notice */}
+      <div className="bg-[#FBF9F5] border-t border-[#E5DEC9] px-4 py-2 text-[11px] text-[#667085] flex flex-wrap items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#1B4332]" />
+          <span>
+            <strong>Evaluation Basis:</strong> Identical demand scenario, calibrated BPR delay, Webster signal equations, and multi-path Logit equilibrium.
+          </span>
+        </span>
+        <span className="text-[10px] text-[#98A2B3]">
+          Modeled peak trips &bull; Illustrative planning cost estimates
+        </span>
+      </div>
     </div>
   );
 };

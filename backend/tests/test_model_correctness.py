@@ -195,3 +195,4 @@ def test_baseline_invariance_when_editing_proposals():
     assert run1.metrics.avg_vc_ratio == run2.metrics.avg_vc_ratio
     assert run1.link_results["L1"].capacity_vph == run2.link_results["L1"].capacity_vph
     assert run1.link_results["L1"].volume_vph == run2.link_results["L1"].volume_vph
+
