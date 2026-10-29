@@ -1,0 +1,200 @@
+{
+  "preset_id": "jiit_sec128_noida",
+  "name": "JIIT Sector 128 & Wish Town Corridor, Noida",
+  "city": "Noida, Uttar Pradesh, India",
+  "description": "Corridor surrounding Jaypee Institute of Information Technology (JIIT) Sector 128, Jaypee Hospital, and Noida-Greater Noida Expressway service road. Heavy 3:00 PM - 7:00 PM college dispersal, private cab boarding, and parent pick-up congestion blocking service lanes.",
+  "center": [28.5175, 77.3698],
+  "zoom": 16,
+  "problem_statement": "Outside JIIT Sector 128, heavy traffic builds up between 3:00 PM - 7:00 PM due to student dispersal, curbside parking, and auto-rickshaws idling on the dual-lane frontage service road, causing 450m queues and spillover onto the expressway entry slip.",
+  "objective": "Eliminate curbside queue choke and reduce college gate clearance delay without transferring gridlock into neighboring residential Wish Town streets.",
+  "nodes": [
+    {
+      "id": "node_expressway_entry",
+      "name": "Noida-Greater Noida Expressway Slip Entry",
+      "lat": 28.5212,
+      "lon": 77.3665,
+      "is_signalized": false
+    },
+    {
+      "id": "node_jiit_gate1",
+      "name": "JIIT Sector 128 Main Gate & Student Exit",
+      "lat": 28.5182,
+      "lon": 77.3688,
+      "is_signalized": true,
+      "cycle_length_sec": 75.0,
+      "green_split": 0.40
+    },
+    {
+      "id": "node_hospital_chowk",
+      "name": "Jaypee Hospital T-Junction Roundabout",
+      "lat": 28.5148,
+      "lon": 77.3715,
+      "is_signalized": true,
+      "cycle_length_sec": 90.0,
+      "green_split": 0.50
+    },
+    {
+      "id": "node_wishtown_gate",
+      "name": "Wish Town Internal Arterial Junction",
+      "lat": 28.5170,
+      "lon": 77.3745,
+      "is_signalized": false
+    },
+    {
+      "id": "node_sultanpur_conn",
+      "name": "Sultanpur Village Parallel Collector",
+      "lat": 28.5205,
+      "lon": 77.3730,
+      "is_signalized": false
+    },
+    {
+      "id": "node_sector132_link",
+      "name": "Sector 132 Commercial Link",
+      "lat": 28.5120,
+      "lon": 77.3738,
+      "is_signalized": false
+    }
+  ],
+  "links": [
+    {
+      "id": "link_jiit_frontage_south",
+      "name": "JIIT Frontage Service Road (Southbound)",
+      "from_node": "node_expressway_entry",
+      "to_node": "node_jiit_gate1",
+      "highway_type": "secondary",
+      "length_m": 420.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 45.0,
+      "base_capacity_vph": 1600.0,
+      "has_curbside_friction": true,
+      "coordinates": [
+        [77.3665, 28.5212],
+        [77.3675, 28.5198],
+        [77.3688, 28.5182]
+      ]
+    },
+    {
+      "id": "link_jiit_gate_to_hospital",
+      "name": "JIIT Frontage to Jaypee Hospital Chowk",
+      "from_node": "node_jiit_gate1",
+      "to_node": "node_hospital_chowk",
+      "highway_type": "secondary",
+      "length_m": 510.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 40.0,
+      "base_capacity_vph": 1500.0,
+      "has_curbside_friction": true,
+      "coordinates": [
+        [77.3688, 28.5182],
+        [77.3702, 28.5165],
+        [77.3715, 28.5148]
+      ]
+    },
+    {
+      "id": "link_wishtown_collector_south",
+      "name": "Wish Town Internal Boulevard (Southbound)",
+      "from_node": "node_sultanpur_conn",
+      "to_node": "node_wishtown_gate",
+      "highway_type": "residential",
+      "length_m": 480.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 35.0,
+      "base_capacity_vph": 1100.0,
+      "coordinates": [
+        [77.3730, 28.5205],
+        [77.3738, 28.5188],
+        [77.3745, 28.5170]
+      ]
+    },
+    {
+      "id": "link_wishtown_to_hospital",
+      "name": "Wish Town to Jaypee Hospital Link",
+      "from_node": "node_wishtown_gate",
+      "to_node": "node_hospital_chowk",
+      "highway_type": "tertiary",
+      "length_m": 410.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 40.0,
+      "base_capacity_vph": 1200.0,
+      "coordinates": [
+        [77.3745, 28.5170],
+        [77.3730, 28.5158],
+        [77.3715, 28.5148]
+      ]
+    },
+    {
+      "id": "link_jiit_cross_connector",
+      "name": "JIIT Gate Cross Connector to Wish Town",
+      "from_node": "node_jiit_gate1",
+      "to_node": "node_wishtown_gate",
+      "highway_type": "service",
+      "length_m": 360.0,
+      "lanes": 1,
+      "free_flow_speed_kmh": 30.0,
+      "base_capacity_vph": 750.0,
+      "coordinates": [
+        [77.3688, 28.5182],
+        [77.3718, 28.5178],
+        [77.3745, 28.5170]
+      ]
+    },
+    {
+      "id": "link_sultanpur_bypass",
+      "name": "North Collector Sultanpur Link",
+      "from_node": "node_expressway_entry",
+      "to_node": "node_sultanpur_conn",
+      "highway_type": "tertiary",
+      "length_m": 580.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 45.0,
+      "base_capacity_vph": 1400.0,
+      "coordinates": [
+        [77.3665, 28.5212],
+        [77.3695, 28.5210],
+        [77.3730, 28.5205]
+      ]
+    },
+    {
+      "id": "link_hospital_to_sec132",
+      "name": "Jaypee Hospital to Sector 132 Arterial",
+      "from_node": "node_hospital_chowk",
+      "to_node": "node_sector132_link",
+      "highway_type": "primary",
+      "length_m": 390.0,
+      "lanes": 3,
+      "free_flow_speed_kmh": 50.0,
+      "base_capacity_vph": 2400.0,
+      "coordinates": [
+        [77.3715, 28.5148],
+        [77.3728, 28.5132],
+        [77.3738, 28.5120]
+      ]
+    }
+  ],
+  "demand_scenario": {
+    "scenario_id": "jiit128_evening_peak_3to7pm",
+    "name": "Evening Dispersal Peak (3:00 PM - 7:00 PM)",
+    "peak_duration_min": 60.0,
+    "observed_vs_modeled_note": "Demand reflects 1,850 hourly trips generated by student dismissal, faculty vehicles, app-based cabs (Ola/Uber), and transit shuttles along the expressway service corridor.",
+    "od_flows": [
+      {
+        "origin_node": "node_expressway_entry",
+        "destination_node": "node_sector132_link",
+        "flow_vph": 1450.0,
+        "description": "Through corridor commuter flow + JIIT pickup traffic heading towards Sector 132 / Greater Noida Expressway"
+      },
+      {
+        "origin_node": "node_jiit_gate1",
+        "destination_node": "node_sector132_link",
+        "flow_vph": 550.0,
+        "description": "Student dismissal and campus egress traffic joining southbound carriageway"
+      },
+      {
+        "origin_node": "node_expressway_entry",
+        "destination_node": "node_wishtown_gate",
+        "flow_vph": 380.0,
+        "description": "Wish Town resident traffic entering from expressway connector"
+      }
+    ]
+  }
+}

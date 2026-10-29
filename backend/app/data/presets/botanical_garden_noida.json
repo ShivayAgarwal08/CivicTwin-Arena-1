@@ -1,0 +1,154 @@
+{
+  "preset_id": "botanical_garden_noida",
+  "name": "Botanical Garden Metro Interchange Corridor, Noida",
+  "city": "Noida, Uttar Pradesh, India",
+  "description": "Critical interchange between Delhi Metro Blue Line & Magenta Line along Dadri Main Road and Captain Shashi Kant Marg. Severe evening peak congestion caused by intermediate auto-rickshaw drop-offs, feeder buses, and commuters heading towards Greater Noida and Sector 18.",
+  "center": [28.5645, 77.3340],
+  "zoom": 16,
+  "problem_statement": "Around Botanical Garden Metro Station, hundreds of auto-rickshaws, e-rickshaws, and rideshare cabs stop directly in the two curb lanes of Dadri Main Road, choking arterial capacity by 45% and backing traffic past the Sector 37 underpass.",
+  "objective": "Clear curbside transit bottleneck and reduce Dadri Main Road delay while preventing traffic diversion into Sector 37 residential streets.",
+  "nodes": [
+    {
+      "id": "node_sec37_underpass",
+      "name": "Sector 37 Flyover & Dadri Road West Entry",
+      "lat": 28.5630,
+      "lon": 77.3305,
+      "is_signalized": false
+    },
+    {
+      "id": "node_metro_interchange",
+      "name": "Botanical Garden Metro Station Gate 1 & 2",
+      "lat": 28.5645,
+      "lon": 77.3340,
+      "is_signalized": true,
+      "cycle_length_sec": 100.0,
+      "green_split": 0.45
+    },
+    {
+      "id": "node_dadri_east_junction",
+      "name": "Dadri Road / Golf Course Road Junction",
+      "lat": 28.5660,
+      "lon": 77.3385,
+      "is_signalized": true,
+      "cycle_length_sec": 90.0,
+      "green_split": 0.50
+    },
+    {
+      "id": "node_captain_shashikant_north",
+      "name": "Captain Shashi Kant Marg North Connector",
+      "lat": 28.5685,
+      "lon": 77.3330,
+      "is_signalized": false
+    },
+    {
+      "id": "node_sec37_internal",
+      "name": "Sector 37 Residential Gate",
+      "lat": 28.5615,
+      "lon": 77.3345,
+      "is_signalized": false
+    }
+  ],
+  "links": [
+    {
+      "id": "link_dadri_main_eastbound",
+      "name": "Dadri Main Road (Eastbound past Metro)",
+      "from_node": "node_sec37_underpass",
+      "to_node": "node_metro_interchange",
+      "highway_type": "primary",
+      "length_m": 430.0,
+      "lanes": 3,
+      "free_flow_speed_kmh": 50.0,
+      "base_capacity_vph": 2100.0,
+      "has_curbside_friction": true,
+      "coordinates": [
+        [77.3305, 28.5630],
+        [77.3322, 28.5638],
+        [77.3340, 28.5645]
+      ]
+    },
+    {
+      "id": "link_metro_to_golf_junction",
+      "name": "Dadri Road to Golf Course Junction",
+      "from_node": "node_metro_interchange",
+      "to_node": "node_dadri_east_junction",
+      "highway_type": "primary",
+      "length_m": 490.0,
+      "lanes": 3,
+      "free_flow_speed_kmh": 50.0,
+      "base_capacity_vph": 2200.0,
+      "coordinates": [
+        [77.3340, 28.5645],
+        [77.3362, 28.5652],
+        [77.3385, 28.5660]
+      ]
+    },
+    {
+      "id": "link_shashikant_feeder",
+      "name": "Captain Shashi Kant Marg Feeder Link",
+      "from_node": "node_captain_shashikant_north",
+      "to_node": "node_metro_interchange",
+      "highway_type": "secondary",
+      "length_m": 470.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 40.0,
+      "base_capacity_vph": 1300.0,
+      "coordinates": [
+        [77.3330, 28.5685],
+        [77.3335, 28.5665],
+        [77.3340, 28.5645]
+      ]
+    },
+    {
+      "id": "link_sec37_residential_bypass",
+      "name": "Sector 37 Internal Residential Street",
+      "from_node": "node_sec37_underpass",
+      "to_node": "node_sec37_internal",
+      "highway_type": "residential",
+      "length_m": 460.0,
+      "lanes": 1,
+      "free_flow_speed_kmh": 30.0,
+      "base_capacity_vph": 700.0,
+      "coordinates": [
+        [77.3305, 28.5630],
+        [77.3325, 28.5620],
+        [77.3345, 28.5615]
+      ]
+    },
+    {
+      "id": "link_sec37_internal_to_east",
+      "name": "Sector 37 Egress to Dadri Road",
+      "from_node": "node_sec37_internal",
+      "to_node": "node_dadri_east_junction",
+      "highway_type": "residential",
+      "length_m": 530.0,
+      "lanes": 1,
+      "free_flow_speed_kmh": 30.0,
+      "base_capacity_vph": 750.0,
+      "coordinates": [
+        [77.3345, 28.5615],
+        [77.3368, 28.5635],
+        [77.3385, 28.5660]
+      ]
+    }
+  ],
+  "demand_scenario": {
+    "scenario_id": "botanical_evening_rush",
+    "name": "Evening Commuter Rush (5:00 PM - 8:00 PM)",
+    "peak_duration_min": 60.0,
+    "observed_vs_modeled_note": "Modeled demand captures 2,350 vehicles/hr composed of private commuters from Delhi and Sector 18 plus high-frequency paratransit auto queues outside the station gates.",
+    "od_flows": [
+      {
+        "origin_node": "node_sec37_underpass",
+        "destination_node": "node_dadri_east_junction",
+        "flow_vph": 1750.0,
+        "description": "Through traffic on Dadri Main Road towards Golf Course and Expressway"
+      },
+      {
+        "origin_node": "node_captain_shashikant_north",
+        "destination_node": "node_dadri_east_junction",
+        "flow_vph": 600.0,
+        "description": "Traffic from Sector 28 / Sector 29 heading towards interchange"
+      }
+    ]
+  }
+}

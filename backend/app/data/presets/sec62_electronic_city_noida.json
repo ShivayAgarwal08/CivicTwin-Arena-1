@@ -1,0 +1,131 @@
+{
+  "preset_id": "sec62_electronic_city_noida",
+  "name": "Noida Sector 62 & Electronic City Metro Corridor",
+  "city": "Noida, Uttar Pradesh, India",
+  "description": "Major institutional & IT corridor encompassing Fortis Hospital Chowk, Noida Electronic City Metro Station, and institutional campus clusters (JIIT Sector 62, Symbiosis, IIM Lucknow Noida campus).",
+  "center": [28.6275, 77.3625],
+  "zoom": 16,
+  "problem_statement": "Evening rush between 5:30 PM - 7:30 PM causes severe queue back-ups at Fortis Chowk and the Electronic City Metro roundabout due to overlapping institutional dismissal, corporate shuttle boarding, and NH-24 / Delhi-Meerut Expressway merging vehicles.",
+  "objective": "Improve roundabout throughput and reduce transit bus queue delay without forcing cross-cutting traffic into hospital emergency corridors.",
+  "nodes": [
+    {
+      "id": "node_fortis_chowk",
+      "name": "Fortis Hospital Main Chowk",
+      "lat": 28.6250,
+      "lon": 77.3605,
+      "is_signalized": true,
+      "cycle_length_sec": 110.0,
+      "green_split": 0.45
+    },
+    {
+      "id": "node_metro_sec62",
+      "name": "Noida Electronic City Metro Terminal",
+      "lat": 28.6280,
+      "lon": 77.3635,
+      "is_signalized": true,
+      "cycle_length_sec": 90.0,
+      "green_split": 0.50
+    },
+    {
+      "id": "node_nh24_junction",
+      "name": "NH-24 / Delhi-Meerut Expressway Slip",
+      "lat": 28.6310,
+      "lon": 77.3660,
+      "is_signalized": false
+    },
+    {
+      "id": "node_institutional_loop",
+      "name": "Sector 62 Institutional Campus Access Ring",
+      "lat": 28.6295,
+      "lon": 77.3590,
+      "is_signalized": false
+    }
+  ],
+  "links": [
+    {
+      "id": "link_sec62_main_northbound",
+      "name": "Sector 62 Central Spine (Northbound)",
+      "from_node": "node_fortis_chowk",
+      "to_node": "node_metro_sec62",
+      "highway_type": "primary",
+      "length_m": 470.0,
+      "lanes": 3,
+      "free_flow_speed_kmh": 50.0,
+      "base_capacity_vph": 2400.0,
+      "has_curbside_friction": true,
+      "coordinates": [
+        [77.3605, 28.6250],
+        [77.3620, 28.6265],
+        [77.3635, 28.6280]
+      ]
+    },
+    {
+      "id": "link_metro_to_nh24",
+      "name": "Electronic City to NH-24 Expressway Ramp",
+      "from_node": "node_metro_sec62",
+      "to_node": "node_nh24_junction",
+      "highway_type": "primary",
+      "length_m": 440.0,
+      "lanes": 3,
+      "free_flow_speed_kmh": 55.0,
+      "base_capacity_vph": 2600.0,
+      "coordinates": [
+        [77.3635, 28.6280],
+        [77.3648, 28.6295],
+        [77.3660, 28.6310]
+      ]
+    },
+    {
+      "id": "link_institutional_feeder",
+      "name": "Campus Ring Feeder (JIIT / Symbiosis)",
+      "from_node": "node_institutional_loop",
+      "to_node": "node_metro_sec62",
+      "highway_type": "secondary",
+      "length_m": 410.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 35.0,
+      "base_capacity_vph": 1200.0,
+      "coordinates": [
+        [77.3590, 28.6295],
+        [77.3612, 28.6288],
+        [77.3635, 28.6280]
+      ]
+    },
+    {
+      "id": "link_fortis_to_institutional",
+      "name": "Fortis West Service Road",
+      "from_node": "node_fortis_chowk",
+      "to_node": "node_institutional_loop",
+      "highway_type": "residential",
+      "length_m": 520.0,
+      "lanes": 2,
+      "free_flow_speed_kmh": 35.0,
+      "base_capacity_vph": 1100.0,
+      "coordinates": [
+        [77.3605, 28.6250],
+        [77.3598, 28.6272],
+        [77.3590, 28.6295]
+      ]
+    }
+  ],
+  "demand_scenario": {
+    "scenario_id": "sec62_evening_peak",
+    "name": "IT Corridor Evening Clearance (5:30 PM - 7:30 PM)",
+    "peak_duration_min": 60.0,
+    "observed_vs_modeled_note": "Captures 2,200 vehicles/hr exiting corporate parks and institutional campuses entering the arterial spine towards NH-24.",
+    "od_flows": [
+      {
+        "origin_node": "node_fortis_chowk",
+        "destination_node": "node_nh24_junction",
+        "flow_vph": 1600.0,
+        "description": "Primary spine commuter flow towards Delhi and Ghaziabad"
+      },
+      {
+        "origin_node": "node_institutional_loop",
+        "destination_node": "node_nh24_junction",
+        "flow_vph": 600.0,
+        "description": "Campus egress traffic merging into metro junction"
+      }
+    ]
+  }
+}
