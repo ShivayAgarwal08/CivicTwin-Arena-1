@@ -100,3 +100,4 @@ def test_compare_endpoint_jiit128():
     assert report["preferred_winner"] in ["HUMAN", "AI", "BASELINE"]
     assert len(report["trade_offs_identified"]) >= 3
     assert len(report["baseline"]["link_results"]) > 0
+

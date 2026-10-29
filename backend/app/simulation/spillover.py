@@ -75,3 +75,4 @@ class SpilloverAnalyzer:
             round(delta_delay, 1),
             f"Neutral: Operational flow maintained within baseline equilibrium (delta {delta_delay:+.1f}s).",
         )
+

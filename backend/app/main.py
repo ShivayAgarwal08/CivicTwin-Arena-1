@@ -246,3 +246,4 @@ def search_osm_location(
             return {"results": [], "note": "OSM geocoder returned non-200 status"}
     except Exception as e:
         return {"results": [], "error": str(e)}
+

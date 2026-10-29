@@ -8,6 +8,7 @@ class InterventionType(str, Enum):
     WIDEN_ROAD = "WIDEN_ROAD"                # Road corridor capacity expansion
     SIGNAL_RETIMING = "SIGNAL_RETIMING"      # Reallocate green phase split at intersection
     PICKUP_BAY = "PICKUP_BAY"                # Dedicated off-line curbside pick-up/drop-off bay (curbside friction elimination)
+    ROAD_CLOSURE = "ROAD_CLOSURE"            # Complete street or corridor closure / pedestrianization
     ONE_WAY_DIVERSION = "ONE_WAY_DIVERSION"  # Re-route flow direction, eliminate conflicting turns
     TRAFFIC_CALMING = "TRAFFIC_CALMING"      # Speed table / chicane to discourage residential rat-running
     MEDIAN_CLOSURE = "MEDIAN_CLOSURE"        # Restrict uncontrolled right-turns to prevent bottleneck friction
@@ -188,3 +189,4 @@ class LocationPresetSummary(BaseModel):
     problem_statement: str
     objective: str
     is_real_osm: bool = True
+

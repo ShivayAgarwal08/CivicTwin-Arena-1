@@ -33,3 +33,4 @@ print(f"Human Proposal Score: {rep['human_proposal']['metrics']['score_breakdown
 print(f"AI Proposal Score: {rep['ai_proposal']['metrics']['score_breakdown']['total_score']}")
 print(f"Winner headline: {rep['winner_headline']}")
 print(f"Trade-offs count: {len(rep['trade_offs_identified'])}")
+

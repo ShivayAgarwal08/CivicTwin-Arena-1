@@ -160,3 +160,4 @@ Open your browser at: `http://localhost:5173`
 python -m pytest backend/tests -v
 ```
 All 12 unit and scenario tests pass deterministically.
+

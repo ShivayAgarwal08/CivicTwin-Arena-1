@@ -181,3 +181,4 @@ class OSMLoader:
                 )
 
         return list(nodes_dict.values()), links
+

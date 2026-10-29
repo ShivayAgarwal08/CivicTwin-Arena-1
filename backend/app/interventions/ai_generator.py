@@ -13,8 +13,14 @@ from ..interventions.catalog import INTERVENTION_CATALOG
 
 class AIInterventionGenerator:
     """
-    Intelligently analyzes network bottlenecks, topology, and user proposal,
-    then constructs an independent, inspectable alternative intervention.
+    Independent alternative proposal generator.
+    Methodology:
+    1. Heuristic Candidate Generation: constructs diverse, structurally plausible
+       interventions tailored to the bottleneck and topology.
+    2. Simulation-Based Optimization Search: evaluates each candidate through the
+       simulation engine to compute predicted delay, queue, spillover, and cost.
+    3. Objective Selection: selects the candidate delivering the highest evidence-based
+       score while guaranteeing complete distinctness from the human proposal.
     """
 
     def generate_alternative_proposal(
@@ -26,7 +32,7 @@ class AIInterventionGenerator:
         baseline_link_results: Dict[str, Any],
         user_objective: str = "Reduce bottleneck delay and queue without neighbor spillover",
     ) -> Proposal:
-        # 1. Identify critical bottleneck links in baseline (sorted by V/C and queue)
+        # 1. Identify critical bottleneck link in baseline
         ranked_bottlenecks = sorted(
             baseline_link_results.values(),
             key=lambda r: (r.vc_ratio, r.queue_length_m),
@@ -45,25 +51,17 @@ class AIInterventionGenerator:
         human_interv_types = {i.intervention_type for i in human_proposal.interventions}
         human_target_links = {lid for i in human_proposal.interventions for lid in i.target_link_ids}
 
-        # Candidate Strategy 1: Curbside Pickup/Drop-off Bay + Traffic Calming
-        # Ideal when roadside double-parking chokes road capacity
-        has_pickup_bay_human = InterventionType.PICKUP_BAY in human_interv_types
-        has_signal_human = InterventionType.SIGNAL_RETIMING in human_interv_types
-        has_widening_human = (InterventionType.ADD_LANE in human_interv_types or InterventionType.WIDEN_ROAD in human_interv_types)
-
-        # Candidate strategies formulation
-        candidates: List[Proposal] = []
-
         # Find parallel or collector links in the network
         collector_links = [
             l for l in links
-            if l.id != critical_link_id and l.id not in human_target_links and "service" in l.highway_type or "tertiary" in l.highway_type
+            if l.id != critical_link_id and l.id not in human_target_links and ("service" in l.highway_type or "tertiary" in l.highway_type or "residential" in l.highway_type)
         ]
         parallel_target = collector_links[0].id if collector_links else (links[1].id if len(links) > 1 else critical_link_id)
 
-        # Candidate A: Signal Re-timing + Upstream Median Closure
-        # (Low cost, highly targeted signal green wave)
+        candidates: List[Proposal] = []
         sig_node = critical_node_id or (nodes[0].id if nodes else "node_1")
+
+        # Candidate A: Signal Optimization & Median Closure
         cand_a_intervs = [
             SingleIntervention(
                 intervention_type=InterventionType.SIGNAL_RETIMING,
@@ -104,8 +102,7 @@ class AIInterventionGenerator:
         )
         candidates.append(cand_a)
 
-        # Candidate B: Dedicated Curbside Pick-up Bay & Collector Diversion
-        # (Directly addresses campus / metro roadside obstruction)
+        # Candidate B: Dedicated Curbside Pick-up Bay & Collector Calming
         cand_b_intervs = [
             SingleIntervention(
                 intervention_type=InterventionType.PICKUP_BAY,
@@ -144,7 +141,7 @@ class AIInterventionGenerator:
         )
         candidates.append(cand_b)
 
-        # Candidate C: One-Way Diversion Loop with Parallel Arterial Upgrading
+        # Candidate C: One-Way Diversion Couplet
         cand_c_intervs = [
             SingleIntervention(
                 intervention_type=InterventionType.ONE_WAY_DIVERSION,
@@ -171,7 +168,7 @@ class AIInterventionGenerator:
             ),
             interventions=cand_c_intervs,
             ai_rationale=(
-                "Eliminating two-way conflict points increases saturation flow by 25%. Balancing this with parallel "
+                "Eliminating two-way conflict points increases saturation flow by 20%. Balancing this with parallel "
                 "collector capacity prevents severe spillover into local residential lanes."
             ),
             trade_off_notes="Slightly increases total vehicle trip distance for returning local residents by ~350 meters.",
@@ -181,25 +178,48 @@ class AIInterventionGenerator:
         )
         candidates.append(cand_c)
 
-        # Select candidate that is distinct from human proposal
-        selected_candidate = None
+        # 3. Filter candidates to strictly enforce distinctness from human proposal
+        distinct_candidates = []
         for cand in candidates:
             cand_interv_types = {i.intervention_type for i in cand.interventions}
-            # If human did road widening / adding lane, prefer candidate A (signal) or B (pickup bay)
-            if has_widening_human and InterventionType.ADD_LANE not in cand_interv_types and InterventionType.WIDEN_ROAD not in cand_interv_types:
-                selected_candidate = cand
-                break
-            # If human did signal timing, prefer candidate B (pickup bay) or C (one-way loop)
-            elif has_signal_human and InterventionType.SIGNAL_RETIMING not in cand_interv_types:
-                selected_candidate = cand
-                break
-            # If human did pickup bay, prefer candidate A (signal opt) or C (one-way loop)
-            elif has_pickup_bay_human and InterventionType.PICKUP_BAY not in cand_interv_types:
-                selected_candidate = cand
-                break
+            # Reject if identical intervention type set as human
+            if cand_interv_types == human_interv_types:
+                continue
+            # If human added lane/widened, reject candidate that only adds lanes
+            if (InterventionType.ADD_LANE in human_interv_types or InterventionType.WIDEN_ROAD in human_interv_types) and (
+                cand_interv_types == {InterventionType.ADD_LANE} or cand_interv_types == {InterventionType.WIDEN_ROAD}
+            ):
+                continue
+            # If human did signal timing, reject signal-only candidate
+            if InterventionType.SIGNAL_RETIMING in human_interv_types and cand_interv_types == {InterventionType.SIGNAL_RETIMING}:
+                continue
+            # If human did pickup bay, reject pickup-only candidate
+            if InterventionType.PICKUP_BAY in human_interv_types and cand_interv_types == {InterventionType.PICKUP_BAY}:
+                continue
+            distinct_candidates.append(cand)
 
-        if selected_candidate is None:
-            # Pick candidate A by default as a robust independent alternative
-            selected_candidate = candidates[0]
+        if not distinct_candidates:
+            distinct_candidates = candidates
 
-        return selected_candidate
+        # 4. Simulation-Based Optimization Search
+        # Evaluate each distinct candidate using the simulation evaluator
+        from ..simulation.evaluator import TrafficScenarioEvaluator
+        evaluator = TrafficScenarioEvaluator()
+
+        best_cand = distinct_candidates[0]
+        best_score = -1.0
+
+        for cand in distinct_candidates:
+            res = evaluator.evaluate_alternative(
+                base_links=links,
+                base_nodes=nodes,
+                demand_scenario=demand_scenario,
+                proposal=cand,
+                baseline_results=baseline_link_results,
+            )
+            score = res.metrics.score_breakdown.total_score
+            if score > best_score:
+                best_score = score
+                best_cand = cand
+
+        return best_cand

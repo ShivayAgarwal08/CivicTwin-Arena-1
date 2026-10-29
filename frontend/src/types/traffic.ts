@@ -3,6 +3,7 @@ export type InterventionType =
   | 'WIDEN_ROAD'
   | 'SIGNAL_RETIMING'
   | 'PICKUP_BAY'
+  | 'ROAD_CLOSURE'
   | 'ONE_WAY_DIVERSION'
   | 'TRAFFIC_CALMING'
   | 'MEDIAN_CLOSURE';
@@ -167,3 +168,4 @@ export interface LocationPresetSummary {
   objective: string;
   is_real_osm: boolean;
 }
+

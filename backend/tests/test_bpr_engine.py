@@ -63,3 +63,4 @@ def test_oversaturation_queue_growth():
     assert math.isclose(res["queue_vehicles"], 500.0, abs_tol=1.0)
     assert math.isclose(res["queue_length_m"], 3750.0, abs_tol=5.0)
     assert res["queue_delay_sec"] > 0.0
+

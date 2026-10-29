@@ -24,6 +24,13 @@ INTERVENTION_CATALOG = {
         "default_params": {"friction_recovery_pct": 0.45},
         "applicable_to": "link",
     },
+    InterventionType.ROAD_CLOSURE: {
+        "name": "Street Closure / Pedestrianization",
+        "description": "Close designated road segment to general motorized vehicular traffic, diverting trips to alternate corridors.",
+        "fixed_cost_inr": 150000.0,  # 1.5 Lakhs for bollards, barricades, and detour signage
+        "default_params": {},
+        "applicable_to": "link",
+    },
     InterventionType.SIGNAL_RETIMING: {
         "name": "Traffic Signal Optimization",
         "description": "Reallocate green cycle phase split at a critical intersection to relieve the heavily loaded approach.",
@@ -53,3 +60,4 @@ INTERVENTION_CATALOG = {
         "applicable_to": "link",
     },
 }
+

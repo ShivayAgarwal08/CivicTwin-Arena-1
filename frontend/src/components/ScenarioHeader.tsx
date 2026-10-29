@@ -47,6 +47,9 @@ export const ScenarioHeader: React.FC<ScenarioHeaderProps> = ({
             <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#F4F0E8] text-[#1B4332] border border-[#E5DEC9] px-2 py-0.5 rounded">
               3-Alternative Studio
             </span>
+            <span className="text-[10px] text-[#667085] bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded hidden sm:inline">
+              OSM Geometry &bull; Calibrated Peak Flow
+            </span>
           </div>
           <p className="text-xs text-[#667085]">
             Map-First Urban Traffic Planning & Fair Intervention Comparison

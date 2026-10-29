@@ -247,3 +247,4 @@ def test_baseline_wins_scenario(base_test_network):
     assert report.preferred_winner == WinnerType.BASELINE
     assert report.baseline.metrics.score_breakdown.total_score > report.human_proposal.metrics.score_breakdown.total_score
     assert report.baseline.metrics.score_breakdown.total_score > report.ai_proposal.metrics.score_breakdown.total_score
+

@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any, Optional, Set
 from ..models.schemas import (
     NetworkLink,
     NetworkNode,
@@ -38,31 +38,32 @@ class TrafficScenarioEvaluator:
         """
         Applies a proposal to the base network and evaluates it under the demand scenario.
         """
-        # Deep copy to ensure zero cross-contamination
+        # Deep copy to guarantee zero cross-contamination
         working_links = copy.deepcopy(base_links)
         working_nodes = copy.deepcopy(base_nodes)
         node_dict = {n.id: n for n in working_nodes}
         link_dict = {l.id: l for l in working_links}
 
         directly_modified_links: Dict[str, str] = {}
+        closed_links_set: Set[str] = set()
         total_intervention_cost = 0.0
 
         # Apply interventions
         for interv in proposal.interventions:
-            total_intervention_cost += interv.estimated_cost_inr
+            total_intervention_cost += max(0.0, interv.estimated_cost_inr)
 
             if interv.intervention_type == InterventionType.ADD_LANE:
-                extra_lanes = interv.parameters.get("extra_lanes", 1)
+                extra_lanes = max(1, int(interv.parameters.get("extra_lanes", 1)))
                 for lid in interv.target_link_ids:
                     if lid in link_dict:
                         l = link_dict[lid]
                         l.lanes += extra_lanes
-                        # Adding an urban lane adds 1100 veh/hr capacity
+                        # Standard urban saturation flow addition: ~1100 veh/hr per lane
                         l.base_capacity_vph += extra_lanes * 1100.0
                         directly_modified_links[lid] = f"Added +{extra_lanes} lane(s)"
 
             elif interv.intervention_type == InterventionType.WIDEN_ROAD:
-                width_expansion_factor = interv.parameters.get("capacity_boost_factor", 0.40)
+                width_expansion_factor = max(0.10, interv.parameters.get("capacity_boost_factor", 0.40))
                 for lid in interv.target_link_ids:
                     if lid in link_dict:
                         l = link_dict[lid]
@@ -72,14 +73,22 @@ class TrafficScenarioEvaluator:
 
             elif interv.intervention_type == InterventionType.PICKUP_BAY:
                 # Dedicated curbside pick-up/drop-off bay (crucial for colleges/transit hubs)
-                # Eliminates curb-choke where parked cars reduce 1 whole lane
-                recovery_pct = interv.parameters.get("friction_recovery_pct", 0.45)
+                # Eliminates curb-choke where parked cars/rickshaws block travel lane
+                recovery_pct = max(0.10, interv.parameters.get("friction_recovery_pct", 0.45))
                 for lid in interv.target_link_ids:
                     if lid in link_dict:
                         l = link_dict[lid]
                         l.base_capacity_vph *= (1.0 + recovery_pct)
                         l.has_curbside_friction = False
                         directly_modified_links[lid] = "Offline Pick-up/Drop-off Bay (curbside cleared)"
+
+            elif interv.intervention_type == InterventionType.ROAD_CLOSURE:
+                for lid in interv.target_link_ids:
+                    if lid in link_dict:
+                        l = link_dict[lid]
+                        l.base_capacity_vph = 0.0
+                        closed_links_set.add(lid)
+                        directly_modified_links[lid] = "Closed to through traffic"
 
             elif interv.intervention_type == InterventionType.SIGNAL_RETIMING:
                 green_delta = interv.parameters.get("green_split_delta", 0.15)
@@ -105,8 +114,8 @@ class TrafficScenarioEvaluator:
                 for lid in interv.target_link_ids:
                     if lid in link_dict:
                         l = link_dict[lid]
-                        # One-way conversion eliminates turn delays (+25% throughput)
-                        l.base_capacity_vph *= 1.25
+                        # One-way conversion eliminates turning conflicts (+20% capacity)
+                        l.base_capacity_vph *= 1.20
                         directly_modified_links[lid] = "One-way channelization"
 
             elif interv.intervention_type == InterventionType.TRAFFIC_CALMING:
@@ -124,37 +133,55 @@ class TrafficScenarioEvaluator:
                         l.base_capacity_vph *= 1.15
                         directly_modified_links[lid] = "Median closed (uncontrolled right turns eliminated)"
 
-        # Prepare effective capacities map
+        # Effective capacities map
         effective_capacities = {l.id: l.base_capacity_vph for l in working_links}
 
-        # Run multi-path traffic assignment
-        assigned_volumes = self.assignment_engine.assign_traffic(
+        # Multi-path traffic assignment with real convergence and closure handling
+        assign_res = self.assignment_engine.assign_traffic(
             links=working_links,
             nodes=working_nodes,
             od_flows=demand_scenario.od_flows,
             effective_capacities=effective_capacities,
             bpr_engine=self.bpr_engine,
+            closed_links=closed_links_set,
         )
+
+        assigned_volumes = assign_res["volumes"]
+        unserved_demand_vph = assign_res["unserved_demand_vph"]
 
         # Compute individual link performance
         link_results: Dict[str, LinkPerformanceResult] = {}
         for l in working_links:
             vol = assigned_volumes.get(l.id, 0.0)
             cap = effective_capacities.get(l.id, l.base_capacity_vph)
+            is_closed = l.id in closed_links_set or cap <= 0.0
+
             is_sig = node_dict.get(l.to_node, NetworkNode(id="x", name="x", lat=0, lon=0)).is_signalized
             green = node_dict.get(l.to_node, NetworkNode(id="x", name="x", lat=0, lon=0)).green_split or 0.5
             cycle = node_dict.get(l.to_node, NetworkNode(id="x", name="x", lat=0, lon=0)).cycle_length_sec or 90.0
 
-            res = self.bpr_engine.compute_link_travel_time(
-                length_m=l.length_m,
-                free_flow_speed_kmh=l.free_flow_speed_kmh,
-                volume_vph=vol,
-                capacity_vph=cap,
-                is_signalized=is_sig,
-                cycle_sec=cycle,
-                green_split=green,
-                peak_duration_min=demand_scenario.peak_duration_min,
-            )
+            if is_closed:
+                res = {
+                    "free_flow_time_sec": round(l.length_m / max(5.0, l.free_flow_speed_kmh / 3.6), 2),
+                    "actual_travel_time_sec": 0.0,
+                    "delay_sec_per_veh": 0.0,
+                    "vc_ratio": 0.0,
+                    "speed_kmh": 0.0,
+                    "queue_vehicles": 0.0,
+                    "queue_length_m": 0.0,
+                    "queue_delay_sec": 0.0,
+                }
+            else:
+                res = self.bpr_engine.compute_link_travel_time(
+                    length_m=l.length_m,
+                    free_flow_speed_kmh=l.free_flow_speed_kmh,
+                    volume_vph=vol,
+                    capacity_vph=cap,
+                    is_signalized=is_sig,
+                    cycle_sec=cycle,
+                    green_split=green,
+                    peak_duration_min=demand_scenario.peak_duration_min,
+                )
 
             is_direct = l.id in directly_modified_links
             intervention_label = directly_modified_links.get(l.id, None)
@@ -180,7 +207,7 @@ class TrafficScenarioEvaluator:
                 coordinates=l.coordinates,
             )
 
-        # If evaluating a proposal (not baseline), compute spillover against baseline
+        # Spillover classification for non-modified links against baseline
         spillover_counts = {
             "improved": 0,
             "neutral": 0,
@@ -207,42 +234,47 @@ class TrafficScenarioEvaluator:
                     if not is_direct:
                         spillover_counts[status.value] = spillover_counts.get(status.value, 0) + 1
         else:
-            # Baseline: all links are neutral reference
             spillover_counts["neutral"] = len(link_results)
 
         # Aggregate network-wide performance metrics
-        tot_volume = sum(r.volume_vph for r in link_results.values())
-        tot_delay_sec_weighted = sum(r.delay_sec_per_veh * r.volume_vph for r in link_results.values())
-        tot_travel_time_sec_weighted = sum(r.actual_travel_time_sec * r.volume_vph for r in link_results.values())
-        total_veh_hours_delay = sum((r.delay_sec_per_veh * r.volume_vph) / 3600.0 for r in link_results.values())
-        
+        active_links = [r for r in link_results.values() if not (r.link_id in closed_links_set)]
+        tot_volume = sum(r.volume_vph for r in active_links)
+        tot_delay_sec_weighted = sum(r.delay_sec_per_veh * r.volume_vph for r in active_links)
+        tot_travel_time_sec_weighted = sum(r.actual_travel_time_sec * r.volume_vph for r in active_links)
+        total_veh_hours_delay = sum((r.delay_sec_per_veh * r.volume_vph) / 3600.0 for r in active_links)
+
         avg_delay_sec = round(tot_delay_sec_weighted / max(1.0, tot_volume), 1)
         avg_journey_time_min = round((tot_travel_time_sec_weighted / max(1.0, tot_volume)) / 60.0, 2)
-        
+
         # Queue metrics
-        tot_queue_veh = sum(r.queue_vehicles for r in link_results.values())
-        max_queue_m = max((r.queue_length_m for r in link_results.values()), default=0.0)
+        tot_queue_veh = sum(r.queue_vehicles for r in active_links)
+        max_queue_m = max((r.queue_length_m for r in active_links), default=0.0)
         avg_queue_waiting_sec = round(
-            sum(r.queue_vehicles * (r.delay_sec_per_veh) for r in link_results.values()) / max(1.0, tot_queue_veh), 1
+            sum(r.queue_vehicles * (r.delay_sec_per_veh) for r in active_links) / max(1.0, tot_queue_veh), 1
         ) if tot_queue_veh > 0 else 0.0
 
-        # Throughput: estimated vehicles effectively exiting or served per hour
-        throughput_vph = round(min(sum(od.flow_vph for od in demand_scenario.od_flows), tot_volume / max(1, len(link_results)) * 2.5), 0)
-        
-        # Average V/C
-        avg_vc = round(sum(r.vc_ratio for r in link_results.values()) / max(1, len(link_results)), 2)
+        # Throughput: Total demand served minus vehicles remaining trapped in oversaturated bottlenecks or disconnected
+        total_demand_vph = sum(od.flow_vph for od in demand_scenario.od_flows)
+        total_bottleneck_queue_rate = sum(r.queue_vehicles for r in active_links if r.vc_ratio > 1.0)
+        throughput_vph = round(max(0.0, total_demand_vph - total_bottleneck_queue_rate - unserved_demand_vph), 0)
 
-        # Congestion duration (minutes where peak bottlenecks exceed capacity)
-        oversaturated_links = [r for r in link_results.values() if r.vc_ratio >= 1.0]
+        # Average V/C ratio
+        avg_vc = round(sum(r.vc_ratio for r in active_links) / max(1, len(active_links)), 2)
+
+        # Congestion duration (peak period + deterministic time to discharge queue at 40% saturation rate)
+        oversaturated_links = [r for r in active_links if r.vc_ratio >= 1.0 and r.capacity_vph > 0]
         if not oversaturated_links:
             congestion_duration_min = 0.0
         else:
-            max_over = max(r.vc_ratio for r in oversaturated_links)
-            # Duration scales from 30 min to 90 min based on max oversaturation
-            congestion_duration_min = round(min(120.0, 30.0 + (max_over - 1.0) * 100.0), 0)
+            max_clear_min = 0.0
+            for r in oversaturated_links:
+                discharge_net_rate = max(100.0, r.capacity_vph * 0.40)
+                clear_min = (r.queue_vehicles / discharge_net_rate) * 60.0
+                if clear_min > max_clear_min:
+                    max_clear_min = clear_min
+            congestion_duration_min = round(min(180.0, demand_scenario.peak_duration_min + max_clear_min), 0)
 
-        # Transparent Multi-Criteria Decision Score
-        # Reference baseline delay & queue (if baseline, use self)
+        # Transparent Multi-Criteria Decision Score (0 - 100)
         ref_delay = (
             sum(b.delay_sec_per_veh * b.volume_vph for b in baseline_results.values()) / max(1.0, sum(b.volume_vph for b in baseline_results.values()))
             if baseline_results else avg_delay_sec
@@ -271,11 +303,17 @@ class TrafficScenarioEvaluator:
         spillover_comp = round(max(0.0, min(25.0, spill_pts)), 1)
 
         # 4. Cost component (15 pts max)
-        # Cost in lakhs (0 cost = 15 pts, 50 lakhs = 5 pts, >100 lakhs = 0 pts)
         cost_lakhs = total_intervention_cost / 100000.0
         cost_comp = round(max(0.0, min(15.0, 15.0 - (cost_lakhs / 8.0))), 1)
 
-        total_score = round(delay_comp + queue_comp + spillover_comp + cost_comp, 1)
+        raw_score = delay_comp + queue_comp + spillover_comp + cost_comp
+
+        # Severe penalty if intervention severs connectivity and leaves demand unserved
+        if unserved_demand_vph > 0:
+            unmet_penalty = min(35.0, (unserved_demand_vph / max(1.0, total_demand_vph)) * 50.0)
+            raw_score = max(0.0, raw_score - unmet_penalty)
+
+        total_score = round(max(0.0, min(100.0, raw_score)), 1)
 
         score_breakdown = ScoreBreakdown(
             delay_component=delay_comp,
@@ -285,7 +323,9 @@ class TrafficScenarioEvaluator:
             total_score=total_score,
             formula_explanation=(
                 f"Score = Delay({delay_comp}/35) + Queue({queue_comp}/25) + "
-                f"Spillover({spillover_comp}/25) + CostEfficiency({cost_comp}/15) = {total_score}/100"
+                f"Spillover({spillover_comp}/25) + CostEfficiency({cost_comp}/15)"
+                f"{f' - SeveredConnectivityPenalty({unserved_demand_vph:.0f} vph unserved)' if unserved_demand_vph > 0 else ''}"
+                f" = {total_score}/100"
             ),
         )
 
@@ -333,7 +373,7 @@ class TrafficScenarioEvaluator:
             assumptions=[
                 "Road network geometry derived from OpenStreetMap data.",
                 "Calibrated evening peak demand based on standard corridor traffic generation.",
-                "BPR Bureau of Public Roads delay curve with Webster signal delay formulation.",
+                "BPR link performance curve with Webster signal delay formulation and deterministic queuing.",
             ],
         )
 
@@ -365,7 +405,6 @@ class TrafficScenarioEvaluator:
         )
 
         # Determine Preferred Winner purely based on evidence
-        # Criteria: Highest score, with tie-breaking on total delay reduction and spillover
         b_score = baseline_res.metrics.score_breakdown.total_score
         h_score = human_res.metrics.score_breakdown.total_score
         a_score = ai_res.metrics.score_breakdown.total_score
@@ -379,9 +418,8 @@ class TrafficScenarioEvaluator:
         scores.sort(key=lambda x: x[1], reverse=True)
         winner_type = scores[0][0]
 
-        # Check for ties within 1.0 point
-        if abs(scores[0][1] - scores[1][1]) < 1.0:
-            # Check secondary metric: total network delay
+        # Tie-breaker within 0.8 points: check total network delay
+        if abs(scores[0][1] - scores[1][1]) < 0.8:
             if scores[0][2].metrics.total_network_delay_veh_hours > scores[1][2].metrics.total_network_delay_veh_hours:
                 winner_type = scores[1][0]
 
@@ -454,7 +492,7 @@ class TrafficScenarioEvaluator:
 
         limitations = [
             "Link travel times are estimated via macroscopic BPR curves and Webster signal delay, not micro-simulation car-following physics.",
-            "Demand counts reflect calibrated modeled peak-hour trips; individual day-to-day fluctuations may vary with monsoon or special events.",
+            "Demand counts reflect calibrated modeled peak-hour trips; individual day-to-day fluctuations may vary with weather or special events.",
             "Cost estimates are preliminary planning figures based on regional municipal schedule of rates and do not replace detailed engineering estimates.",
         ]
 

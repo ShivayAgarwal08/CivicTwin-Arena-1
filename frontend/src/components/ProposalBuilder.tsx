@@ -51,6 +51,10 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({
       cost = 850000.0; // 8.5 Lakhs
       params = { friction_recovery_pct: frictionRecovery / 100.0 };
       rationale = `Construct dedicated indented drop-off bay on ${linkName} to eliminate curbside double-parking friction.`;
+    } else if (selectedType === 'ROAD_CLOSURE') {
+      cost = 150000.0; // 1.5 Lakhs for barriers and detour signs
+      params = {};
+      rationale = `Close ${linkName} to motorized through traffic, diverting trips to alternate routes.`;
     } else if (selectedType === 'ADD_LANE') {
       const len = linkObj ? linkObj.length_m : 400.0;
       cost = len * 12000.0 * extraLanes; // 12k/meter per lane
@@ -166,6 +170,7 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({
             className="w-full text-xs bg-white border border-[#E5DEC9] rounded-md px-2.5 py-1.5 focus:outline-none focus:border-[#1B4332] text-[#1F2421]"
           >
             <option value="PICKUP_BAY">Dedicated Curbside Pick-up / Drop-off Bay (Campus/Transit)</option>
+            <option value="ROAD_CLOSURE">Street Closure / Pedestrianization</option>
             <option value="ADD_LANE">Add Travel Lane / Road Widening</option>
             <option value="SIGNAL_RETIMING">Intersection Signal Green Phase Re-timing</option>
             <option value="ONE_WAY_DIVERSION">One-Way Reversal & Channelization</option>

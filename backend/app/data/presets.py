@@ -71,3 +71,4 @@ class PresetRepository:
             "objective": data.get("objective"),
         }
         return nodes, links, demand, metadata
+
