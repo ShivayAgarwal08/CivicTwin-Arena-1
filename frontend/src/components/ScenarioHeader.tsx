@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
 import type { LocationPresetSummary, AuthorType, WinnerType } from '../types/traffic';
-import { Layers, Search, Play, Trophy, Building2, MapPin, Compass } from 'lucide-react';
+import {
+  Layers,
+  Search,
+  Play,
+  Trophy,
+  Building2,
+  MapPin,
+  Compass,
+  Cpu,
+  Activity,
+  CheckCircle2,
+  Sliders,
+  Sparkles,
+  PlusCircle,
+  HelpCircle,
+} from 'lucide-react';
 
 interface ScenarioHeaderProps {
   presets: LocationPresetSummary[];
@@ -12,6 +27,8 @@ interface ScenarioHeaderProps {
   isEvaluating: boolean;
   winner?: WinnerType;
   onSearchQuery: (q: string) => void;
+  onOpenStudyAreaModal?: () => void;
+  onOpenAssumptionsModal?: () => void;
 }
 
 export const ScenarioHeader: React.FC<ScenarioHeaderProps> = ({
@@ -24,6 +41,8 @@ export const ScenarioHeader: React.FC<ScenarioHeaderProps> = ({
   isEvaluating,
   winner,
   onSearchQuery,
+  onOpenStudyAreaModal,
+  onOpenAssumptionsModal,
 }) => {
   const [searchInput, setSearchInput] = useState('');
 
@@ -35,106 +54,153 @@ export const ScenarioHeader: React.FC<ScenarioHeaderProps> = ({
   };
 
   return (
-    <header className="bg-[#FFFFFF] border-b border-[#E5DEC9] px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-      {/* Brand & Purpose */}
+    <header className="bg-[#101722] border-b border-[#1C2634] px-4 py-2 flex flex-wrap items-center justify-between gap-2.5 shadow-md z-30 select-none">
+      {/* Brand & Subtitle */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-[#1B4332] text-white flex items-center justify-center font-bold shadow-sm">
-          <Compass className="w-6 h-6 text-[#A3E635]" />
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center font-bold shadow-lg shadow-emerald-950/40 border border-emerald-400/30">
+          <Compass className="w-5 h-5 text-emerald-100" />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-[#1F2421]">CivicTwin Arena</h1>
-            <span className="text-[11px] font-semibold uppercase tracking-wider bg-[#F4F0E8] text-[#1B4332] border border-[#E5DEC9] px-2 py-0.5 rounded">
-              3-Alternative Studio
+            <h1 className="text-sm sm:text-base font-bold tracking-tight text-[#E8EDF4]">CivicTwin Arena</h1>
+            <span className="text-[10px] font-semibold uppercase tracking-wider bg-emerald-950/70 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded">
+              ITS Twin Engine
             </span>
-            <span className="text-[10px] text-[#667085] bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded hidden sm:inline">
-              OSM Geometry &bull; Calibrated Peak Flow
-            </span>
+            {winner && (
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-950/70 text-blue-400 border border-blue-800/60 px-2 py-0.5 rounded flex items-center gap-1">
+                <Trophy className="w-3 h-3 text-amber-400" />
+                Winner: {winner}
+              </span>
+            )}
           </div>
-          <p className="text-xs text-[#667085]">
-            Map-First Urban Traffic Planning & Fair Intervention Comparison
+          <p className="text-[11px] text-[#94A3B8]">
+            Yunex-Inspired Urban Traffic Planning &amp; Multi-Alternative Simulation
           </p>
         </div>
       </div>
 
-      {/* Corridor Presets & Search */}
+      {/* Center Provenance Badges (Clickable to open Assumptions & Specs) */}
+      <div className="hidden xl:flex items-center gap-2">
+        <button
+          onClick={onOpenAssumptionsModal}
+          title="Click to inspect OpenStreetMap geometry provenance"
+          className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#151D29] hover:bg-[#1C2634] border border-[#293548] text-[10px] text-[#94A3B8] transition-colors cursor-pointer"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[#64748B]">Topology:</span>
+          <strong className="text-[#E8EDF4]">OSM WGS84 Geometry</strong>
+        </button>
+        <button
+          onClick={onOpenAssumptionsModal}
+          title="Click to view BPR and Webster signal formulas"
+          className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#151D29] hover:bg-[#1C2634] border border-[#293548] text-[10px] text-[#94A3B8] transition-colors cursor-pointer"
+        >
+          <Cpu className="w-3 h-3 text-blue-400" />
+          <span className="text-[#64748B]">Physics:</span>
+          <strong className="text-[#E8EDF4]">BPR + Webster Flow</strong>
+        </button>
+        <button
+          onClick={onOpenAssumptionsModal}
+          title="Click to view regulatory standard: IRC:106-1990"
+          className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#151D29] hover:bg-[#1C2634] border border-[#293548] text-[10px] text-[#94A3B8] transition-colors cursor-pointer"
+        >
+          <Activity className="w-3 h-3 text-amber-400" />
+          <span className="text-[#64748B]">Standard:</span>
+          <strong className="text-[#E8EDF4]">IRC:106 Peak Flow</strong>
+        </button>
+      </div>
+
+      {/* Corridor Presets, Import & Search */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 bg-[#FBF9F5] border border-[#E5DEC9] rounded-lg px-3 py-1.5 text-xs text-[#1F2421]">
-          <Building2 className="w-4 h-4 text-[#1B4332]" />
-          <span className="font-semibold text-[#667085]">Corridor:</span>
+        {/* Preset Selector */}
+        <div className="flex items-center gap-1 bg-[#151D29] border border-[#293548] rounded-lg px-2.5 py-1 text-xs text-[#E8EDF4]">
+          <Building2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="text-[11px] text-[#94A3B8]">Corridor:</span>
           <select
             value={selectedPresetId}
             onChange={(e) => onSelectPreset(e.target.value)}
-            className="bg-transparent font-medium text-[#1F2421] focus:outline-none cursor-pointer"
+            className="bg-transparent font-medium text-xs text-[#E8EDF4] focus:outline-none cursor-pointer pr-1 max-w-[140px] sm:max-w-[210px] truncate"
           >
             {presets.map((p) => (
-              <option key={p.id} value={p.id}>
+              <option key={p.id} value={p.id} className="bg-[#151D29] text-[#E8EDF4]">
                 {p.name}
               </option>
             ))}
           </select>
         </div>
 
+        {/* Dynamic Real OSM Area Import Button */}
+        {onOpenStudyAreaModal && (
+          <button
+            onClick={onOpenStudyAreaModal}
+            title="Import real road network from OpenStreetMap for any city or corridor"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#151D29] hover:bg-emerald-950/70 text-emerald-400 hover:text-emerald-300 border border-[#293548] hover:border-emerald-700/60 text-xs font-semibold transition-all cursor-pointer shadow-xs"
+          >
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Import Real OSM</span>
+          </button>
+        )}
+
+        {/* Quick Search */}
         <form onSubmit={handleSearchSubmit} className="relative">
           <input
             type="text"
-            placeholder="Search city, campus, metro..."
+            placeholder="Search city / sector..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-8 pr-3 py-1.5 bg-[#FBF9F5] border border-[#E5DEC9] rounded-lg text-xs w-48 focus:w-64 transition-all focus:outline-none focus:border-[#1B4332] text-[#1F2421]"
+            className="pl-7 pr-3 py-1 bg-[#151D29] border border-[#293548] rounded-lg text-xs w-32 sm:w-40 transition-all focus:outline-none focus:border-blue-500 text-[#E8EDF4] placeholder-[#64748B]"
           />
-          <Search className="w-3.5 h-3.5 text-[#667085] absolute left-2.5 top-2.5 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2 top-2 pointer-events-none" />
         </form>
       </div>
 
-      {/* Alternative View Selector Tabs */}
-      <div className="flex items-center bg-[#F4F0E8] p-1 rounded-lg border border-[#E5DEC9] text-xs font-medium">
-        <button
-          onClick={() => onChangeAlternative('BASELINE')}
-          className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-            activeAlternative === 'BASELINE'
-              ? 'bg-white text-[#1F2421] font-semibold shadow-sm'
-              : 'text-[#667085] hover:text-[#1F2421]'
-          }`}
-        >
-          <span>A. Baseline Network</span>
-          {winner === 'BASELINE' && <Trophy className="w-3.5 h-3.5 text-amber-600" />}
-        </button>
+      {/* Scenario Alternative Toggle Pills & Run Button */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center bg-[#151D29] p-0.5 rounded-lg border border-[#293548] text-xs">
+          <button
+            onClick={() => onChangeAlternative('BASELINE')}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
+              activeAlternative === 'BASELINE'
+                ? 'bg-[#1C2634] text-[#E8EDF4] shadow-sm font-semibold border border-[#3B82F6]/50'
+                : 'text-[#94A3B8] hover:text-[#E8EDF4]'
+            }`}
+          >
+            A. Baseline
+          </button>
+          <button
+            onClick={() => onChangeAlternative('HUMAN')}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all flex items-center gap-1 ${
+              activeAlternative === 'HUMAN'
+                ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                : 'text-[#94A3B8] hover:text-[#E8EDF4]'
+            }`}
+          >
+            <Sliders className="w-3 h-3" />
+            B. Human
+          </button>
+          <button
+            onClick={() => onChangeAlternative('AI')}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all flex items-center gap-1 ${
+              activeAlternative === 'AI'
+                ? 'bg-purple-600 text-white shadow-sm font-semibold'
+                : 'text-[#94A3B8] hover:text-[#E8EDF4]'
+            }`}
+          >
+            <Sparkles className="w-3 h-3 text-purple-200" />
+            C. AI
+          </button>
+        </div>
 
+        {/* Primary Simulation Button */}
         <button
-          onClick={() => onChangeAlternative('HUMAN')}
-          className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-            activeAlternative === 'HUMAN'
-              ? 'bg-[#1B4332] text-white font-semibold shadow-sm'
-              : 'text-[#667085] hover:text-[#1F2421]'
-          }`}
+          onClick={onRunComparison}
+          disabled={isEvaluating}
+          className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md shadow-emerald-950/40 cursor-pointer"
         >
-          <span>B. My Proposal</span>
-          {winner === 'HUMAN' && <Trophy className="w-3.5 h-3.5 text-[#A3E635]" />}
-        </button>
-
-        <button
-          onClick={() => onChangeAlternative('AI')}
-          className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-            activeAlternative === 'AI'
-              ? 'bg-[#2563EB] text-white font-semibold shadow-sm'
-              : 'text-[#667085] hover:text-[#1F2421]'
-          }`}
-        >
-          <span>C. AI Alternative</span>
-          {winner === 'AI' && <Trophy className="w-3.5 h-3.5 text-amber-300" />}
+          <Play className={`w-3.5 h-3.5 fill-current ${isEvaluating ? 'animate-spin' : ''}`} />
+          <span>{isEvaluating ? 'Simulating Physics...' : 'Simulate 3 Alternatives'}</span>
         </button>
       </div>
-
-      {/* Run Evaluation Button */}
-      <button
-        onClick={onRunComparison}
-        disabled={isEvaluating}
-        className="flex items-center gap-2 bg-[#1B4332] hover:bg-[#143225] disabled:opacity-60 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all"
-      >
-        <Play className={`w-3.5 h-3.5 ${isEvaluating ? 'animate-spin' : 'fill-white'}`} />
-        <span>{isEvaluating ? 'Simulating Traffic...' : 'Evaluate 3 Alternatives'}</span>
-      </button>
     </header>
   );
 };

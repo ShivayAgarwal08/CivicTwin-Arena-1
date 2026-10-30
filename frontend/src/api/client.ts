@@ -6,6 +6,7 @@ import type {
   NetworkLink,
   TrafficDemandScenario,
   AlternativeResult,
+  NetworkRoute,
 } from '../types/traffic';
 
 const API_BASE = 'http://localhost:8000/api';
@@ -22,11 +23,18 @@ export interface PresetDetailResponse {
   links: NetworkLink[];
   demand: TrafficDemandScenario;
   baseline_result: AlternativeResult;
+  routes?: NetworkRoute[];
 }
 
 export async function fetchPresetDetail(presetId: string): Promise<PresetDetailResponse> {
   const res = await fetch(`${API_BASE}/presets/${presetId}`);
   if (!res.ok) throw new Error(`Failed to load preset ${presetId}`);
+  return res.json();
+}
+
+export async function fetchPresetRoutes(presetId: string): Promise<NetworkRoute[]> {
+  const res = await fetch(`${API_BASE}/presets/${presetId}/routes`);
+  if (!res.ok) throw new Error(`Failed to load routes for ${presetId}`);
   return res.json();
 }
 
@@ -91,7 +99,78 @@ export async function compareThreeAlternatives(params: {
 }
 
 export async function searchOSMLocation(query: string) {
-  const res = await fetch(`${API_BASE}/search-osm?q=${encodeURIComponent(query)}`);
+  const res = await fetch(`${API_BASE}/study-areas/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, limit: 5 }),
+  });
   if (!res.ok) return { results: [] };
   return res.json();
 }
+
+export interface FetchOSMStudyAreaResponse {
+  status: string;
+  area_name: string;
+  city: string;
+  nodes: NetworkNode[];
+  links: NetworkLink[];
+  demand: TrafficDemandScenario;
+  warnings: string[];
+  node_count: number;
+  link_count: number;
+  is_connected: boolean;
+  center: [number, number];
+  default_zoom: number;
+}
+
+export async function fetchOSMStudyArea(params: {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+  area_name: string;
+  city: string;
+  problem_statement?: string;
+  objective?: string;
+}): Promise<FetchOSMStudyAreaResponse> {
+  const res = await fetch(`${API_BASE}/study-areas/fetch-osm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to fetch OpenStreetMap network' }));
+    throw new Error(err.detail || 'Failed to fetch OpenStreetMap network');
+  }
+  return res.json();
+}
+
+export async function saveStudyArea(payload: {
+  id: string;
+  name: string;
+  city: string;
+  problem_statement: string;
+  objective: string;
+  nodes: NetworkNode[];
+  links: NetworkLink[];
+  demand: TrafficDemandScenario;
+  metadata?: Record<string, any>;
+}): Promise<{ status: string; id: string }> {
+  const res = await fetch(`${API_BASE}/study-areas/save`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to save study area' }));
+    throw new Error(err.detail || 'Failed to save study area');
+  }
+  return res.json();
+}
+
+export async function fetchSimulationAssumptions(): Promise<any> {
+  const res = await fetch(`${API_BASE}/simulation-assumptions`);
+  if (!res.ok) throw new Error('Failed to load simulation assumptions');
+  return res.json();
+}
+

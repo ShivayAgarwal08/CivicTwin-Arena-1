@@ -13,7 +13,7 @@ export const SpilloverInspector: React.FC<SpilloverInspectorProps> = ({
 }) => {
   if (!report) {
     return (
-      <div className="bg-white border border-[#E5DEC9] rounded-xl p-8 text-center text-xs text-[#667085]">
+      <div className="bg-[#151D29] border border-[#293548] rounded-xl p-8 text-center text-xs text-[#94A3B8]">
         Run the simulation to inspect network-wide spillover effects on surrounding streets.
       </div>
     );
@@ -36,133 +36,152 @@ export const SpilloverInspector: React.FC<SpilloverInspectorProps> = ({
     switch (status) {
       case 'newly_congested':
         return (
-          <span className="bg-red-100 text-red-800 border border-red-200 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
+          <span className="bg-red-950/80 text-red-400 border border-red-800/80 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
             Newly Congested (V/C &ge; 0.95)
           </span>
         );
       case 'deteriorated':
         return (
-          <span className="bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
+          <span className="bg-amber-950/80 text-amber-400 border border-amber-800/80 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
             Deteriorated (+20% Delay)
           </span>
         );
       case 'moderate':
         return (
-          <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 font-medium px-2 py-0.5 rounded text-[10px] uppercase">
+          <span className="bg-yellow-950/80 text-yellow-300 border border-yellow-800/80 font-medium px-2 py-0.5 rounded text-[10px] uppercase">
             Moderate (+5-20%)
           </span>
         );
       case 'improved':
         return (
-          <span className="bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
+          <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
             Improved (Relieved)
           </span>
         );
+      case 'unaffected':
       default:
         return (
-          <span className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded text-[10px]">
-            Neutral
+          <span className="bg-[#101722] text-[#94A3B8] border border-[#293548] font-medium px-2 py-0.5 rounded text-[10px] uppercase">
+            Unaffected (&plusmn;5%)
           </span>
         );
     }
   };
 
-  return (
-    <div className="bg-white border border-[#E5DEC9] rounded-xl overflow-hidden shadow-sm">
-      {/* Header Summary */}
-      <div className="p-4 border-b border-[#E5DEC9] bg-[#FBF9F5] flex items-center justify-between">
-        <div>
-          <h3 className="font-bold text-[#1F2421] text-xs uppercase tracking-wide flex items-center gap-1.5">
-            <ShieldAlert className="w-4 h-4 text-amber-700" />
-            <span>Spillover Impact on Surrounding Road Corridors</span>
-          </h3>
-          <p className="text-[11px] text-[#667085] mt-0.5">
-            Evaluates how interventions alter flow and queue propagation on non-intervened neighboring links.
-          </p>
-        </div>
+  const newlyCongested = spilloverLinks.filter((l) => l.spillover_status === 'newly_congested');
+  const deteriorated = spilloverLinks.filter((l) => l.spillover_status === 'deteriorated');
+  const improved = spilloverLinks.filter((l) => l.spillover_status === 'improved');
 
-        {activeAlternative !== 'BASELINE' && (
-          <div className="flex items-center gap-2 text-xs font-semibold">
-            <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-              {currentResult.metrics.spillover_counts.improved || 0} Relieved
-            </span>
-            <span className="text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-              {currentResult.metrics.spillover_counts.deteriorated || 0} Deteriorated
-            </span>
-            <span className="text-red-700 bg-red-50 px-2 py-1 rounded border border-red-200">
-              {currentResult.metrics.spillover_counts.newly_congested || 0} New Choke Points
+  return (
+    <div className="space-y-3.5">
+      {/* Top Banner Explaining Spillover */}
+      <div className="bg-[#151D29] border border-[#293548] rounded-xl p-3 flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0 mt-0.5">
+          <ShieldAlert className="w-4 h-4" />
+        </div>
+        <div className="text-xs space-y-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-bold text-[#E8EDF4]">Network Spillover &amp; Braess Paradox Guard</h4>
+            <span className="text-[10px] font-semibold text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded">
+              Active: Alternative {activeAlternative}
             </span>
           </div>
-        )}
+          <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+            Interventions at one bottleneck can displace traffic onto adjacent neighborhood streets.
+            CivicTwin Arena audits all un-modified links against baseline congestion levels.
+          </p>
+        </div>
       </div>
 
-      {activeAlternative === 'BASELINE' ? (
-        <div className="p-6 text-center text-xs text-[#667085]">
-          Baseline Network represents the reference state against which proposals are measured. Switch to <strong>My Proposal</strong> or <strong>AI Alternative</strong> to inspect induced spillover differences.
+      {/* Metric Summary Counters */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-[#151D29] border border-red-900/50 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-red-400">
+              Newly Congested
+            </span>
+            <div className="text-lg font-bold text-red-300">{newlyCongested.length} links</div>
+            <span className="text-[10px] text-[#94A3B8]">Exceeded 95% capacity</span>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-red-950/80 border border-red-800/80 flex items-center justify-center text-red-400 font-bold text-xs">
+            !
+          </div>
         </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-[#F4F0E8] border-b border-[#E5DEC9] text-[#1F2421]">
-                <th className="py-2.5 px-4 font-bold">Surrounding Road Link</th>
-                <th className="py-2.5 px-4 font-bold">Baseline V/C &rarr; Proposed V/C</th>
-                <th className="py-2.5 px-4 font-bold">Delay Change</th>
-                <th className="py-2.5 px-4 font-bold">Spillover Classification</th>
-                <th className="py-2.5 px-4 font-bold">Traffic Engineering Explanation</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5DEC9]">
-              {spilloverLinks.map((l) => {
-                const bRes = baselineResults[l.link_id];
-                const baseVc = bRes ? bRes.vc_ratio : 0.5;
-                const baseDelay = bRes ? bRes.delay_sec_per_veh : 0.0;
-                const deltaDelay = l.delay_sec_per_veh - baseDelay;
 
-                return (
-                  <tr key={l.link_id} className="hover:bg-[#FBF9F5] transition-colors">
-                    <td className="py-2.5 px-4 font-medium text-[#1F2421]">
-                      <div>{l.link_name}</div>
-                      <span className="text-[10px] text-[#667085] capitalize">
-                        {l.highway_type} street
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-4 font-mono">
-                      <span>{baseVc.toFixed(2)}</span>
-                      <span className="text-[#667085] mx-1.5">&rarr;</span>
-                      <span
-                        className={`font-bold ${
-                          l.vc_ratio >= 1.0 ? 'text-[#DC2626]' : 'text-[#1F2421]'
-                        }`}
-                      >
-                        {l.vc_ratio.toFixed(2)}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-4 font-mono font-medium">
-                      <span
-                        className={
-                          deltaDelay > 2.0
-                            ? 'text-red-700'
-                            : deltaDelay < -2.0
-                            ? 'text-emerald-700'
-                            : 'text-[#667085]'
-                        }
-                      >
-                        {deltaDelay > 0 ? '+' : ''}
-                        {deltaDelay.toFixed(1)}s
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-4">{getStatusBadge(l.spillover_status)}</td>
-                    <td className="py-2.5 px-4 text-[#475467] text-[11px] max-w-sm">
-                      {l.spillover_explanation}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="bg-[#151D29] border border-amber-900/50 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+              Deteriorated Delay
+            </span>
+            <div className="text-lg font-bold text-amber-300">{deteriorated.length} links</div>
+            <span className="text-[10px] text-[#94A3B8]">&gt;20% delay jump</span>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-amber-950/80 border border-amber-800/80 flex items-center justify-center text-amber-400 font-bold text-xs">
+            &Delta;
+          </div>
         </div>
-      )}
+
+        <div className="bg-[#151D29] border border-emerald-900/50 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+              Relieved Streets
+            </span>
+            <div className="text-lg font-bold text-emerald-300">{improved.length} links</div>
+            <span className="text-[10px] text-[#94A3B8]">Benefited from diversion</span>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-emerald-950/80 border border-emerald-800/80 flex items-center justify-center text-emerald-400 font-bold text-xs">
+            &check;
+          </div>
+        </div>
+      </div>
+
+      {/* Spillover Links List */}
+      <div className="bg-[#151D29] border border-[#293548] rounded-xl overflow-hidden shadow-md">
+        <div className="bg-[#101722] border-b border-[#293548] px-3.5 py-2.5 flex items-center justify-between text-xs">
+          <span className="font-bold text-[#E8EDF4]">Detailed Surrounding Street Breakdown</span>
+          <span className="text-[10px] text-[#94A3B8]">{spilloverLinks.length} surrounding links monitored</span>
+        </div>
+
+        <div className="divide-y divide-[#293548] max-h-56 overflow-y-auto">
+          {spilloverLinks.map((link) => {
+            const baseLink = baselineResults[link.link_id];
+            const baseDelay = baseLink ? baseLink.delay_sec : link.delay_sec;
+            const diffDelay = link.delay_sec - baseDelay;
+
+            return (
+              <div
+                key={link.link_id}
+                className="p-3 hover:bg-[#1C2634] transition-colors flex flex-wrap items-center justify-between gap-2 text-xs"
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#E8EDF4]">{link.link_name}</span>
+                    {getStatusBadge(link.spillover_status)}
+                  </div>
+                  <div className="text-[11px] text-[#94A3B8]">
+                    Flow: {link.assigned_flow_vph.toFixed(0)} vph | V/C: {(link.v_over_c * 100).toFixed(0)}%
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <div className="font-mono text-xs text-[#E8EDF4]">
+                    Delay: {link.delay_sec.toFixed(1)}s
+                  </div>
+                  <div className="text-[10px]">
+                    {diffDelay > 0.5 ? (
+                      <span className="text-red-400 font-medium">+{diffDelay.toFixed(1)}s vs Base</span>
+                    ) : diffDelay < -0.5 ? (
+                      <span className="text-emerald-400 font-medium">{diffDelay.toFixed(1)}s vs Base</span>
+                    ) : (
+                      <span className="text-[#64748B]">Neutral</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

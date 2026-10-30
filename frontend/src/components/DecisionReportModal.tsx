@@ -42,205 +42,248 @@ export const DecisionReportModal: React.FC<DecisionReportModalProps> = ({
       : baseline;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-[#FFFFFF] border border-[#E5DEC9] rounded-2xl shadow-2xl max-w-3xl w-full p-6 text-[#1F2421] max-h-[90vh] overflow-y-auto space-y-6">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-[#151D29] border border-[#293548] rounded-2xl shadow-2xl max-w-3xl w-full p-6 text-[#E8EDF4] max-h-[90vh] overflow-y-auto space-y-6">
         {/* Modal Header */}
-        <div className="flex items-start justify-between border-b border-[#E5DEC9] pb-4">
+        <div className="flex items-start justify-between border-b border-[#293548] pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#1B4332] text-white flex items-center justify-center">
-              <FileText className="w-5 h-5 text-[#A3E635]" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-emerald-300" />
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-wider text-[#667085] uppercase bg-[#F4F0E8] px-2 py-0.5 rounded">
+              <span className="text-[10px] font-bold tracking-wider text-emerald-400 uppercase bg-emerald-950/60 border border-emerald-900/60 px-2 py-0.5 rounded">
                 Official Urban Planning Evaluation Brief
               </span>
-              <h2 className="text-lg font-bold text-[#1F2421] mt-0.5">{location_name}</h2>
+              <h2 className="text-lg font-bold text-[#E8EDF4] mt-0.5">{location_name}</h2>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1B4332] border border-[#E5DEC9] rounded-lg hover:bg-[#F4F0E8] transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#293548] bg-[#101722] hover:bg-[#1C2634] text-xs font-semibold text-[#94A3B8] hover:text-[#E8EDF4] transition-all cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print Brief</span>
             </button>
             <button
               onClick={onClose}
-              className="text-[#667085] hover:text-[#1F2421] p-1.5 rounded-lg hover:bg-[#F4F0E8] transition-all font-bold"
+              className="p-1.5 rounded-lg text-[#94A3B8] hover:text-[#E8EDF4] hover:bg-[#1C2634] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Problem Statement & Stated Objective */}
-        <div className="bg-[#FBF9F5] border border-[#E5DEC9] p-4 rounded-xl text-xs space-y-2">
-          <div>
-            <span className="font-bold text-[#667085] text-[10px] uppercase tracking-wider block">
-              Problem Context
-            </span>
-            <p className="font-medium text-[#1F2421] mt-0.5 leading-relaxed">{problem_statement}</p>
-          </div>
-          <div className="border-t border-[#E5DEC9]/80 pt-2">
-            <span className="font-bold text-[#667085] text-[10px] uppercase tracking-wider block">
-              Extracted Planning Objective
-            </span>
-            <p className="font-semibold text-[#1B4332] mt-0.5">{objective_extracted}</p>
-          </div>
-        </div>
-
-        {/* Preferred Alternative Evidence Banner */}
-        <div
-          className={`p-4 rounded-xl border flex items-start gap-3.5 ${
-            preferred_winner === 'HUMAN'
-              ? 'bg-[#E8F5E9] border-[#C8E6C9]'
-              : preferred_winner === 'AI'
-              ? 'bg-blue-50 border-blue-200'
-              : 'bg-amber-50 border-amber-200'
-          }`}
-        >
-          <div
-            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-              preferred_winner === 'HUMAN'
-                ? 'bg-[#1B4332] text-[#A3E635]'
-                : preferred_winner === 'AI'
-                ? 'bg-[#2563EB] text-amber-300'
-                : 'bg-amber-700 text-white'
-            }`}
-          >
+        {/* Executive Summary & Recommendation Banner */}
+        <div className="bg-[#101722] border border-emerald-500/30 rounded-xl p-4 flex items-start gap-4">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
             <Trophy className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#1F2421]">
-              Recommended Course of Action: {preferred_winner} PROPOSAL
-            </span>
-            <h3 className="font-bold text-[#1F2421] text-sm mt-0.5">{winner_headline}</h3>
-            <p className="text-xs text-[#475467] mt-1.5 leading-relaxed">{winner_rationale}</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                Recommended Alternative
+              </span>
+              <span className="text-sm font-bold text-[#E8EDF4]">
+                Alternative {preferred_winner} ({winningResult.proposal.title})
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-emerald-300">{winner_headline}</p>
+            <p className="text-xs text-[#94A3B8] leading-relaxed pt-1">{winner_rationale}</p>
           </div>
         </div>
 
-        {/* Score Breakdown & Vehicle Conservation */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-          <div className="bg-[#FBF9F5] border border-[#E5DEC9] p-3 rounded-xl space-y-1.5">
-            <span className="font-bold text-[#1F2421] text-[10px] uppercase tracking-wider block">
-              Multi-Criteria Decision Score ({winningResult.metrics.score_breakdown.total_score.toFixed(1)} / 100)
+        {/* Context & Objectives */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-[#101722] border border-[#293548] rounded-xl p-3.5 space-y-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">
+              Corridor Problem Context
             </span>
-            <div className="grid grid-cols-4 gap-1.5 text-center text-[10px]">
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-[#667085] block">Delay</span>
-                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.delay_component.toFixed(1)}/35</span>
-              </div>
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-[#667085] block">Queue</span>
-                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.queue_component.toFixed(1)}/25</span>
-              </div>
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-[#667085] block">Spillover</span>
-                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.spillover_penalty.toFixed(1)}/25</span>
-              </div>
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-[#667085] block">Cost</span>
-                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.cost_penalty.toFixed(1)}/15</span>
-              </div>
-            </div>
-            <p className="text-[10px] text-[#667085] italic pt-0.5">
-              {winningResult.metrics.score_breakdown.formula_explanation}
-            </p>
+            <p className="text-xs text-[#E8EDF4] leading-relaxed">{problem_statement}</p>
           </div>
 
-          <div className="bg-[#FBF9F5] border border-[#E5DEC9] p-3 rounded-xl space-y-1.5">
-            <span className="font-bold text-[#1F2421] text-[10px] uppercase tracking-wider block">
-              Peak Vehicle Conservation Balance
+          <div className="bg-[#101722] border border-[#293548] rounded-xl p-3.5 space-y-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">
+              Planning Objective
             </span>
-            <div className="grid grid-cols-4 gap-1.5 text-center text-[10px]">
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-[#667085] block">Demand</span>
-                <span className="font-bold text-[#1F2421]">{winningResult.metrics.total_demand_vehicles ?? winningResult.metrics.network_throughput_vph} veh</span>
-              </div>
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-emerald-700 block">Served</span>
-                <span className="font-bold text-emerald-700">{winningResult.metrics.served_vehicles ?? winningResult.metrics.network_throughput_vph} veh</span>
-              </div>
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-amber-700 block">Queued</span>
-                <span className="font-bold text-amber-700">{winningResult.metrics.queued_vehicles ?? 0} veh</span>
-              </div>
-              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
-                <span className="text-red-700 block">Unserved</span>
-                <span className="font-bold text-red-700">{winningResult.metrics.unserved_vehicles ?? 0} veh</span>
-              </div>
-            </div>
-            <p className="text-[10px] text-[#667085] pt-0.5">
-              Balance: Demand = Served ({winningResult.metrics.served_vehicles ?? winningResult.metrics.network_throughput_vph}) + Queued ({winningResult.metrics.queued_vehicles ?? 0}) + Unserved ({winningResult.metrics.unserved_vehicles ?? 0})
-            </p>
+            <p className="text-xs text-[#E8EDF4] leading-relaxed">{objective_extracted}</p>
           </div>
         </div>
 
-        {/* Key Trade-Offs Identified */}
-        <div>
-          <h4 className="text-xs font-bold text-[#1F2421] uppercase tracking-wider mb-2.5">
-            Explicit Trade-Offs & Multi-Criteria Evaluation
-          </h4>
-          <div className="border border-[#E5DEC9] rounded-xl overflow-hidden text-xs">
-            <table className="w-full text-left">
-              <thead className="bg-[#FBF9F5] border-b border-[#E5DEC9] text-[#1F2421]">
+        {/* Key Trade-offs Identified */}
+        <div className="space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#94A3B8] flex items-center gap-1.5">
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <span>Key Engineering &amp; Operational Trade-offs</span>
+          </h3>
+          <div className="bg-[#101722] border border-[#293548] rounded-xl p-3.5 space-y-2">
+            {trade_offs_identified.map((t: any, idx: number) => {
+              const text = typeof t === 'string' ? t : `${t.category}: ${t.explanation}`;
+              return (
+                <div key={idx} className="flex items-start gap-2 text-xs text-[#94A3B8]">
+                  <span className="text-amber-400 font-bold">•</span>
+                  <span className="leading-relaxed">{text}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Metric Comparison Snapshot */}
+        <div className="space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#94A3B8]">
+            3-Way Performance Verification Snapshot
+          </h3>
+          <div className="bg-[#101722] border border-[#293548] rounded-xl overflow-hidden">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#151D29] border-b border-[#293548] text-[11px] text-[#94A3B8] font-bold">
                 <tr>
-                  <th className="py-2.5 px-3.5 font-bold">Category</th>
-                  <th className="py-2.5 px-3.5 font-bold">Baseline</th>
-                  <th className="py-2.5 px-3.5 font-bold">Proposal Comparison</th>
-                  <th className="py-2.5 px-3.5 font-bold">Engineering Assessment</th>
+                  <th className="py-2 px-3">Metric</th>
+                  <th className="py-2 px-3 text-right">A. Baseline</th>
+                  <th className="py-2 px-3 text-right">B. Human Proposal</th>
+                  <th className="py-2 px-3 text-right">C. AI Proposal</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5DEC9]">
-                {trade_offs_identified.map((td, idx) => (
-                  <tr key={idx} className="hover:bg-[#FBF9F5]/50">
-                    <td className="py-2.5 px-3.5 font-semibold text-[#1F2421]">{td.category}</td>
-                    <td className="py-2.5 px-3.5 font-mono text-[#667085]">{td.baseline_value}</td>
-                    <td className="py-2.5 px-3.5 font-mono font-medium text-[#1F2421]">
-                      {td.proposal_value}
-                    </td>
-                    <td className="py-2.5 px-3.5 text-[#475467] text-[11px]">{td.explanation}</td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-[#293548] font-mono text-xs text-[#E8EDF4]">
+                <tr>
+                  <td className="py-2 px-3 font-sans font-medium text-[#94A3B8]">Avg Delay (s/veh)</td>
+                  <td className="py-2 px-3 text-right">
+                    {baseline.metrics.avg_vehicle_delay_sec.toFixed(1)}s
+                  </td>
+                  <td className="py-2 px-3 text-right text-blue-400">
+                    {human_proposal.metrics.avg_vehicle_delay_sec.toFixed(1)}s
+                  </td>
+                  <td className="py-2 px-3 text-right text-purple-400">
+                    {ai_proposal.metrics.avg_vehicle_delay_sec.toFixed(1)}s
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 font-sans font-medium text-[#94A3B8]">Max Queue (m)</td>
+                  <td className="py-2 px-3 text-right">
+                    {baseline.metrics.max_queue_length_m.toFixed(0)}m
+                  </td>
+                  <td className="py-2 px-3 text-right text-blue-400">
+                    {human_proposal.metrics.max_queue_length_m.toFixed(0)}m
+                  </td>
+                  <td className="py-2 px-3 text-right text-purple-400">
+                    {ai_proposal.metrics.max_queue_length_m.toFixed(0)}m
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 font-sans font-medium text-[#94A3B8]">Throughput (vph)</td>
+                  <td className="py-2 px-3 text-right">
+                    {baseline.metrics.network_throughput_vph.toFixed(0)} vph
+                  </td>
+                  <td className="py-2 px-3 text-right text-blue-400">
+                    {human_proposal.metrics.network_throughput_vph.toFixed(0)} vph
+                  </td>
+                  <td className="py-2 px-3 text-right text-purple-400">
+                    {ai_proposal.metrics.network_throughput_vph.toFixed(0)} vph
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 font-sans font-medium text-[#94A3B8]">
+                    Deteriorated Spillover
+                  </td>
+                  <td className="py-2 px-3 text-right">
+                    {baseline.metrics.spillover_counts?.deteriorated ?? 0} links
+                  </td>
+                  <td className="py-2 px-3 text-right text-blue-400">
+                    {human_proposal.metrics.spillover_counts?.deteriorated ?? 0} links
+                  </td>
+                  <td className="py-2 px-3 text-right text-purple-400">
+                    {ai_proposal.metrics.spillover_counts?.deteriorated ?? 0} links
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 font-sans font-medium text-[#94A3B8]">Estimated Cost</td>
+                  <td className="py-2 px-3 text-right">₹0</td>
+                  <td className="py-2 px-3 text-right text-blue-400">
+                    ₹
+                    {(
+                      human_proposal.proposal.interventions.reduce(
+                        (s, i) => s + i.estimated_cost_inr,
+                        0
+                      ) / 100000
+                    ).toFixed(1)}
+                    L
+                  </td>
+                  <td className="py-2 px-3 text-right text-purple-400">
+                    ₹
+                    {(
+                      ai_proposal.proposal.interventions.reduce(
+                        (s, i) => s + i.estimated_cost_inr,
+                        0
+                      ) / 100000
+                    ).toFixed(1)}
+                    L
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Robustness Assessment & Limitations */}
+        {/* Robustness & Assumptions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="bg-[#FBF9F5] border border-[#E5DEC9] p-3.5 rounded-xl">
-            <span className="font-bold text-[#1F2421] block mb-1 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#1B4332]" />
-              <span>Sensitivity & Robustness</span>
+          <div className="bg-[#101722] border border-[#293548] rounded-xl p-3.5 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">
+              Sensitivity &amp; Robustness Check
             </span>
-            <p className="text-[#667085] text-[11px] leading-relaxed">
-              {sensitivity_and_robustness}
-            </p>
+            <p className="text-[#94A3B8] leading-relaxed">{sensitivity_and_robustness}</p>
           </div>
 
-          <div className="bg-[#FBF9F5] border border-[#E5DEC9] p-3.5 rounded-xl">
-            <span className="font-bold text-[#1F2421] block mb-1 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
-              <span>Engineering Assumptions & Boundaries</span>
+          <div className="bg-[#101722] border border-[#293548] rounded-xl p-3.5 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">
+              Methodological Assumptions
             </span>
-            <ul className="text-[#667085] text-[11px] list-disc list-inside space-y-1">
-              {limitations_and_assumptions.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
+            <div className="space-y-1">
+              {Array.isArray(limitations_and_assumptions) ? (
+                limitations_and_assumptions.map((a, i) => (
+                  <p key={i} className="text-[#94A3B8] leading-relaxed">• {a}</p>
+                ))
+              ) : (
+                <p className="text-[#94A3B8] leading-relaxed">{limitations_and_assumptions}</p>
+              )}
+            </div>
           </div>
         </div>
 
+        {/* Data Provenance & Real-World Caveat */}
+        <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl p-3.5 space-y-2 text-xs">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-amber-400" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+              Data Provenance &amp; Real-World Implementation Caveat
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-[#94A3B8]">
+            <div className="bg-[#101722] p-2 rounded border border-[#293548]">
+              <strong className="text-[#E8EDF4] block">Network Geometry:</strong>
+              <span>OpenStreetMap (WGS84)</span>
+            </div>
+            <div className="bg-[#101722] p-2 rounded border border-[#293548]">
+              <strong className="text-[#E8EDF4] block">Capacity Code:</strong>
+              <span>IRC:106-1990 Urban Standards</span>
+            </div>
+            <div className="bg-[#101722] p-2 rounded border border-[#293548]">
+              <strong className="text-[#E8EDF4] block">Traffic Flow Physics:</strong>
+              <span>BPR + Webster Queueing</span>
+            </div>
+          </div>
+          <p className="text-[11px] text-[#94A3B8] leading-relaxed pt-1">
+            CivicTwin Arena enforces scientific rigor: the recommended alternative reflects algorithmic multi-criteria optimization of modeled peak-hour queue and delay trade-offs. It is not an uncritical substitute for municipal engineering oversight, statutory environmental clearances, underground utility audits, and citizen public hearings.
+          </p>
+        </div>
+
         {/* Modal Footer */}
-        <div className="border-t border-[#E5DEC9] pt-4 flex items-center justify-between text-xs text-[#667085]">
-          <span>Generated by CivicTwin Arena deterministic simulation model.</span>
+        <div className="border-t border-[#293548] pt-4 flex items-center justify-between text-xs text-[#64748B]">
+          <span>Generated by CivicTwin Arena • Rigorous Multi-Alternative Decision Support</span>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-[#1B4332] text-white font-semibold rounded-lg hover:bg-[#143225] transition-all"
+            className="px-4 py-1.5 rounded-lg bg-[#101722] hover:bg-[#1C2634] border border-[#293548] font-semibold text-[#E8EDF4] transition-colors cursor-pointer"
           >
-            Close Decision Brief
+            Close Brief
           </button>
         </div>
       </div>

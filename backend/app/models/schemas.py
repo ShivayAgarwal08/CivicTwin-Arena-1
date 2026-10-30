@@ -194,3 +194,77 @@ class LocationPresetSummary(BaseModel):
     objective: str
     is_real_osm: bool = True
 
+
+class RouteTurnInstruction(BaseModel):
+    step_number: int
+    instruction: str
+    maneuver: str
+    road_name: str
+    junction_name: str
+    distance_m: float
+    travel_time_sec: float
+
+
+class NetworkRoute(BaseModel):
+    id: str
+    name: str
+    origin_node_id: str
+    origin_name: str
+    destination_node_id: str
+    destination_name: str
+    is_primary: bool = True
+    link_ids: List[str]
+    total_distance_m: float
+    free_flow_time_sec: float
+    modeled_travel_time_sec: float
+    delay_sec: float
+    critical_bottleneck_link_id: Optional[str] = None
+    max_vc_ratio: float
+    turn_instructions: List[RouteTurnInstruction]
+    geometry: List[List[float]]  # [[lat, lon], ...]
+
+
+class StudyAreaSearchRequest(BaseModel):
+    query: str
+    limit: int = 5
+
+
+class FetchOSMStudyAreaRequest(BaseModel):
+    south: float
+    west: float
+    north: float
+    east: float
+    area_name: str = "Custom Study Area"
+    city: str = "Urban Center"
+    problem_statement: Optional[str] = "Peak hour traffic congestion"
+    objective: Optional[str] = "Reduce vehicle delay and spillover"
+
+
+class FetchOSMStudyAreaResponse(BaseModel):
+    status: str
+    area_name: str
+    city: str
+    nodes: List[NetworkNode]
+    links: List[NetworkLink]
+    demand: TrafficDemandScenario
+    warnings: List[str] = []
+    node_count: int
+    link_count: int
+    is_connected: bool
+    center: List[float]
+    default_zoom: int = 16
+
+
+class SaveStudyAreaRequest(BaseModel):
+    id: str
+    name: str
+    city: str
+    problem_statement: str
+    objective: str
+    nodes: List[NetworkNode]
+    links: List[NetworkLink]
+    demand: TrafficDemandScenario
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+

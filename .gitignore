@@ -27,3 +27,6 @@ frontend/.tmp/
 .env.local
 .DS_Store
 Thumbs.db
+
+# Test Screenshots / Output
+*.png

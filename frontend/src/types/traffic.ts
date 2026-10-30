@@ -169,3 +169,33 @@ export interface LocationPresetSummary {
   is_real_osm: boolean;
 }
 
+export interface RouteTurnInstruction {
+  step_number: number;
+  instruction: string;
+  maneuver: string;
+  road_name: string;
+  junction_name: string;
+  distance_m: number;
+  travel_time_sec: number;
+}
+
+export interface NetworkRoute {
+  id: string;
+  name: string;
+  origin_node_id: string;
+  origin_name: string;
+  destination_node_id: string;
+  destination_name: string;
+  is_primary: boolean;
+  link_ids: string[];
+  total_distance_m: number;
+  free_flow_time_sec: number;
+  modeled_travel_time_sec: number;
+  delay_sec: number;
+  critical_bottleneck_link_id?: string;
+  max_vc_ratio: number;
+  turn_instructions: RouteTurnInstruction[];
+  geometry: [number, number][]; // [[lat, lon], ...]
+}
+
+

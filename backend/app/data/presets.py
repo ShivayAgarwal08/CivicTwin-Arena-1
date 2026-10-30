@@ -32,6 +32,7 @@ class PresetRepository:
     def list_presets(cls) -> List[LocationPresetSummary]:
         cls._load_all()
         summaries = []
+        # 1. Built-in presets
         for pid, data in cls._cache.items():
             summaries.append(
                 LocationPresetSummary(
@@ -47,6 +48,27 @@ class PresetRepository:
                     is_real_osm=True,
                 )
             )
+
+        # 2. Dynamic custom study areas
+        from .osm_loader import OSMLoader
+        for custom_meta in OSMLoader.list_saved_study_areas():
+            cid = custom_meta.get("id")
+            if cid and not any(s.id == cid for s in summaries):
+                summaries.append(
+                    LocationPresetSummary(
+                        id=cid,
+                        name=f"⭐ {custom_meta.get('name', cid)}",
+                        city=custom_meta.get("city", "Custom Corridor"),
+                        description=custom_meta.get("description", "Dynamic real-world OSM study area"),
+                        center_lat=custom_meta.get("center", [28.5, 77.3])[0],
+                        center_lon=custom_meta.get("center", [28.5, 77.3])[1],
+                        default_zoom=custom_meta.get("zoom", 16),
+                        problem_statement=custom_meta.get("problem_statement", ""),
+                        objective=custom_meta.get("objective", ""),
+                        is_real_osm=True,
+                    )
+                )
+
         return summaries
 
     @classmethod
@@ -56,6 +78,11 @@ class PresetRepository:
         cls._load_all()
         data = cls._cache.get(preset_id)
         if not data:
+            # Check dynamic custom study areas
+            from .osm_loader import OSMLoader
+            loaded = OSMLoader.load_study_area(preset_id)
+            if loaded:
+                return loaded
             return None
 
         nodes = [NetworkNode(**n) for n in data["nodes"]]

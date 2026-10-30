@@ -4,38 +4,40 @@
 
 @layer base {
   body {
-    @apply bg-[#FBF9F5] text-[#1F2421] font-sans antialiased;
+    @apply bg-[#0B0F14] text-[#E8EDF4] font-sans antialiased;
     margin: 0;
     padding: 0;
+    overflow: hidden;
   }
 }
 
-/* Custom Scrollbar for clean UI */
+/* Custom Scrollbar for Dark Traffic Engineering Console */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #F4F0E8;
+  background: #101722;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D5CEBE;
+  background: #293548;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B5AD9C;
+  background: #3B4D66;
 }
 
-/* Leaflet Custom Tooltip Styling */
+/* Leaflet Custom Tooltip Styling for Dark Mode */
 .leaflet-custom-tooltip {
-  background: rgba(255, 255, 255, 0.96) !important;
-  border: 1px solid #E5DEC9 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-  color: #1F2421 !important;
+  background: rgba(21, 29, 41, 0.95) !important;
+  border: 1px solid #293548 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.5) !important;
+  color: #E8EDF4 !important;
   font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 11px !important;
   padding: 6px 10px !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 .leaflet-tooltip-top:before,
@@ -43,6 +45,46 @@
 .leaflet-tooltip-left:before,
 .leaflet-tooltip-right:before {
   border: none !important;
+}
+
+/* Leaflet Dark Mode Control Adjustments */
+.leaflet-control-zoom {
+  border: 1px solid #293548 !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.leaflet-control-zoom a {
+  background-color: #151D29 !important;
+  color: #94A3B8 !important;
+  border-bottom: 1px solid #293548 !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #1C2634 !important;
+  color: #E8EDF4 !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(11, 15, 20, 0.8) !important;
+  color: #64748B !important;
+  font-size: 9px !important;
+}
+
+.leaflet-control-attribution a {
+  color: #94A3B8 !important;
+}
+
+/* Route Direction Animation */
+@keyframes routePulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.route-pin-pulse {
+  animation: routePulse 2s infinite ease-in-out;
 }
 
 /* Print Stylesheet for Decision Brief */

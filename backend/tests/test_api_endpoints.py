@@ -40,7 +40,20 @@ def test_get_preset_detail_jiit128():
     assert "links" in data
     assert "demand" in data
     assert "baseline_result" in data
+    assert "routes" in data
+    assert len(data["routes"]) > 0
     assert data["baseline_result"]["metrics"]["avg_vehicle_delay_sec"] > 0
+
+
+def test_get_preset_routes():
+    res = client.get("/api/presets/jiit_sec128_noida/routes")
+    assert res.status_code == 200
+    routes = res.json()
+    assert len(routes) >= 3
+    first_route = routes[0]
+    assert "turn_instructions" in first_route
+    assert len(first_route["turn_instructions"]) >= 3
+    assert first_route["total_distance_m"] > 0
 
 
 def test_generate_ai_proposal_endpoint():
@@ -100,4 +113,38 @@ def test_compare_endpoint_jiit128():
     assert report["preferred_winner"] in ["HUMAN", "AI", "BASELINE"]
     assert len(report["trade_offs_identified"]) >= 3
     assert len(report["baseline"]["link_results"]) > 0
+
+
+def test_simulation_assumptions_endpoint():
+    res = client.get("/api/simulation-assumptions")
+    assert res.status_code == 200
+    data = res.json()
+    assert "regulatory_code" in data
+    assert "IRC:106" in data["regulatory_code"]
+    assert "data_provenance_tiers" in data
+    assert len(data["data_provenance_tiers"]) == 4
+    assert "traffic_flow_model" in data
+
+
+def test_study_area_search_endpoint():
+    res = client.post("/api/study-areas/search", json={"query": "Connaught Place", "limit": 3})
+    assert res.status_code == 200
+    data = res.json()
+    assert "results" in data
+
+
+def test_fetch_osm_empty_area_returns_422():
+    # Null island bounding box with no roads
+    payload = {
+        "south": 0.0,
+        "west": 0.0,
+        "north": 0.001,
+        "east": 0.001,
+        "area_name": "Ocean Test",
+    }
+    res = client.post("/api/study-areas/fetch-osm", json=payload)
+    # Must reject with 422 diagnostic and NOT silently substitute a preset
+    assert res.status_code == 422
+    assert "No vehicular road" in res.json()["detail"] or "geometry" in res.json()["detail"]
+
 

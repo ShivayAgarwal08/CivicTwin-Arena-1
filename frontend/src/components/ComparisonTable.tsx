@@ -15,7 +15,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
 }) => {
   if (!report) {
     return (
-      <div className="bg-white border border-[#E5DEC9] rounded-xl p-8 text-center text-xs text-[#667085]">
+      <div className="bg-[#151D29] border border-[#293548] rounded-xl p-8 text-center text-xs text-[#94A3B8]">
         Run the simulation to inspect the fair 3-alternative comparison metrics table.
       </div>
     );
@@ -28,13 +28,15 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     const diff = val - baseVal;
     const pct = baseVal !== 0 ? (diff / baseVal) * 100.0 : 0.0;
     if (Math.abs(diff) < 0.05) {
-      return <span className="text-gray-400 font-mono text-[11px]">—</span>;
+      return <span className="text-[#64748B] font-mono text-[11px]">—</span>;
     }
     const isGood = lowerIsBetter ? diff < 0 : diff > 0;
     return (
       <span
-        className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.2 rounded ${
-          isGood ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+        className={`inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+          isGood
+            ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-800/60'
+            : 'bg-red-950/70 text-red-400 border border-red-800/60'
         }`}
       >
         {diff > 0 ? '+' : ''}
@@ -61,7 +63,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
       human: human_proposal.metrics.avg_vehicle_delay_sec,
       ai: ai_proposal.metrics.avg_vehicle_delay_sec,
       lowerIsBetter: true,
-      desc: 'Average delay above free-flow travel time',
+      desc: 'Per-vehicle delay vs free flow speed',
     },
     {
       label: 'Maximum Queue Length',
@@ -70,16 +72,16 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
       human: human_proposal.metrics.max_queue_length_m,
       ai: ai_proposal.metrics.max_queue_length_m,
       lowerIsBetter: true,
-      desc: 'Longest queue backlog observed across network links',
+      desc: 'Worst backlog encountered in corridor',
     },
     {
-      label: 'Average Queue Waiting Time',
-      unit: 's',
-      base: baseline.metrics.avg_queue_waiting_time_sec,
-      human: human_proposal.metrics.avg_queue_waiting_time_sec,
-      ai: ai_proposal.metrics.avg_queue_waiting_time_sec,
+      label: 'Total Delay Hours',
+      unit: 'veh-h',
+      base: baseline.metrics.total_network_delay_veh_hours,
+      human: human_proposal.metrics.total_network_delay_veh_hours,
+      ai: ai_proposal.metrics.total_network_delay_veh_hours,
       lowerIsBetter: true,
-      desc: 'Average time spent idling in oversaturated queues',
+      desc: 'Cumulative hours lost by all vehicles',
     },
     {
       label: 'Network Throughput',
@@ -88,218 +90,145 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
       human: human_proposal.metrics.network_throughput_vph,
       ai: ai_proposal.metrics.network_throughput_vph,
       lowerIsBetter: false,
-      desc: 'Vehicles served and cleared per peak hour',
+      desc: 'Total vehicles cleared per peak hour',
     },
     {
-      label: 'Total Network Delay',
-      unit: 'veh-hrs',
-      base: baseline.metrics.total_network_delay_veh_hours,
-      human: human_proposal.metrics.total_network_delay_veh_hours,
-      ai: ai_proposal.metrics.total_network_delay_veh_hours,
-      lowerIsBetter: true,
-      desc: 'Cumulative commuter vehicle-hours lost to congestion',
-    },
-    {
-      label: 'Peak Congestion Duration',
-      unit: 'min',
-      base: baseline.metrics.congestion_duration_min,
-      human: human_proposal.metrics.congestion_duration_min,
-      ai: ai_proposal.metrics.congestion_duration_min,
-      lowerIsBetter: true,
-      desc: 'Estimated time required for bottleneck queues to dissolve',
-    },
-    {
-      label: 'Average V/C Ratio',
-      unit: '',
-      base: baseline.metrics.avg_vc_ratio,
-      human: human_proposal.metrics.avg_vc_ratio,
-      ai: ai_proposal.metrics.avg_vc_ratio,
-      lowerIsBetter: true,
-      desc: 'Network volume-to-capacity saturation degree',
-    },
-    {
-      label: 'New Spillover Bottlenecks',
+      label: 'Deteriorated Spillover Links',
       unit: 'links',
-      base: 0,
-      human: human_proposal.metrics.spillover_counts.newly_congested || 0,
-      ai: ai_proposal.metrics.spillover_counts.newly_congested || 0,
+      base: baseline.metrics.spillover_counts?.deteriorated ?? 0,
+      human: human_proposal.metrics.spillover_counts?.deteriorated ?? 0,
+      ai: ai_proposal.metrics.spillover_counts?.deteriorated ?? 0,
       lowerIsBetter: true,
-      desc: 'Surrounding streets newly overwhelmed by diverted traffic',
+      desc: 'Surrounding streets with >20% delay jump',
     },
     {
       label: 'Estimated Capital Cost',
-      unit: '₹ Lakhs',
+      unit: 'INR',
       base: 0,
-      human: human_proposal.metrics.estimated_cost_inr_lakhs,
-      ai: ai_proposal.metrics.estimated_cost_inr_lakhs,
+      human: human_proposal.proposal.interventions.reduce((s, i) => s + i.estimated_cost_inr, 0),
+      ai: ai_proposal.proposal.interventions.reduce((s, i) => s + i.estimated_cost_inr, 0),
       lowerIsBetter: true,
-      desc: 'Civil engineering, signal hardware, or installation cost',
+      desc: 'Implementation cost in Lakhs',
+      isCost: true,
     },
   ];
 
   return (
-    <div className="bg-white border border-[#E5DEC9] rounded-xl overflow-hidden shadow-sm">
-      {/* Winner Announcement Banner */}
-      <div
-        className={`p-4 border-b flex items-start gap-3.5 ${
-          preferred_winner === 'HUMAN'
-            ? 'bg-[#E8F5E9] border-[#C8E6C9]'
-            : preferred_winner === 'AI'
-            ? 'bg-blue-50 border-blue-200'
-            : 'bg-amber-50 border-amber-200'
-        }`}
-      >
-        <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            preferred_winner === 'HUMAN'
-              ? 'bg-[#1B4332] text-[#A3E635]'
-              : preferred_winner === 'AI'
-              ? 'bg-[#2563EB] text-amber-300'
-              : 'bg-amber-700 text-white'
-          }`}
-        >
-          <Trophy className="w-5 h-5" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/80 shadow-xs text-[#1F2421]">
-              Preferred Alternative Selected: {preferred_winner}
-            </span>
+    <div className="space-y-3">
+      {/* Winner Banner */}
+      <div className="bg-[#151D29] border border-emerald-500/30 rounded-xl p-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+            <Trophy className="w-4 h-4" />
           </div>
-          <h3 className="font-bold text-[#1F2421] text-sm mt-1">{winner_headline}</h3>
-          <p className="text-xs text-[#475467] mt-1 leading-relaxed">{winner_rationale}</p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                Recommended Outcome
+              </span>
+              <span className="text-xs font-bold text-[#E8EDF4]">
+                Winner: Alternative {preferred_winner}
+              </span>
+            </div>
+            <p className="text-xs text-[#94A3B8] font-medium mt-0.5">{winner_headline}</p>
+          </div>
+        </div>
+        <div className="text-right hidden sm:block">
+          <span className="text-[10px] text-[#64748B] block">Normalized Score</span>
+          <span className="text-xs font-bold text-emerald-400">
+            {preferred_winner === 'HUMAN'
+              ? human_proposal.metrics.score_breakdown?.total_score?.toFixed(1)
+              : preferred_winner === 'AI'
+              ? ai_proposal.metrics.score_breakdown?.total_score?.toFixed(1)
+              : baseline.metrics.score_breakdown?.total_score?.toFixed(1)}{' '}
+            / 100
+          </span>
         </div>
       </div>
 
-      {/* Synchronized 3-Column Metrics Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="bg-[#FBF9F5] border-b border-[#E5DEC9]">
-              <th className="py-3 px-4 font-bold text-[#1F2421] w-1/4">Evaluation Metric</th>
-              <th
-                onClick={() => onSelectAlternative('BASELINE')}
-                className={`py-3 px-4 font-bold cursor-pointer transition-colors w-1/4 ${
-                  activeAlternative === 'BASELINE' ? 'bg-[#F4F0E8] text-[#1F2421]' : 'text-[#667085]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>A. Baseline Network</span>
-                  {preferred_winner === 'BASELINE' && <Trophy className="w-4 h-4 text-amber-600" />}
-                </div>
+      {/* Comparison Matrix Table */}
+      <div className="bg-[#151D29] border border-[#293548] rounded-xl overflow-hidden shadow-md">
+        <table className="w-full text-left text-xs text-[#E8EDF4]">
+          <thead className="bg-[#101722] border-b border-[#293548] text-[11px] font-bold text-[#94A3B8]">
+            <tr>
+              <th className="py-2.5 px-3">Performance Metric</th>
+              <th className="py-2.5 px-3 text-right">
+                <button
+                  onClick={() => onSelectAlternative('BASELINE')}
+                  className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                    activeAlternative === 'BASELINE'
+                      ? 'bg-[#1C2634] text-white border border-[#293548]'
+                      : 'hover:text-[#E8EDF4]'
+                  }`}
+                >
+                  A. Baseline
+                </button>
               </th>
-              <th
-                onClick={() => onSelectAlternative('HUMAN')}
-                className={`py-3 px-4 font-bold cursor-pointer transition-colors w-1/4 ${
-                  activeAlternative === 'HUMAN'
-                    ? 'bg-[#E8F5E9] text-[#1B4332]'
-                    : 'text-[#667085] hover:text-[#1F2421]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>B. My Proposal</span>
-                  {preferred_winner === 'HUMAN' && <Trophy className="w-4 h-4 text-[#1B4332]" />}
-                </div>
+              <th className="py-2.5 px-3 text-right">
+                <button
+                  onClick={() => onSelectAlternative('HUMAN')}
+                  className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                    activeAlternative === 'HUMAN'
+                      ? 'bg-blue-600 text-white'
+                      : 'hover:text-blue-400'
+                  }`}
+                >
+                  B. Human Proposal
+                </button>
               </th>
-              <th
-                onClick={() => onSelectAlternative('AI')}
-                className={`py-3 px-4 font-bold cursor-pointer transition-colors w-1/4 ${
-                  activeAlternative === 'AI'
-                    ? 'bg-blue-50 text-blue-900'
-                    : 'text-[#667085] hover:text-[#1F2421]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span>C. AI Alternative</span>
-                  {preferred_winner === 'AI' && <Trophy className="w-4 h-4 text-blue-600" />}
-                </div>
+              <th className="py-2.5 px-3 text-right">
+                <button
+                  onClick={() => onSelectAlternative('AI')}
+                  className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                    activeAlternative === 'AI'
+                      ? 'bg-purple-600 text-white'
+                      : 'hover:text-purple-400'
+                  }`}
+                >
+                  C. AI Proposal
+                </button>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E5DEC9]">
+          <tbody className="divide-y divide-[#293548]">
             {rows.map((r, i) => (
-              <tr key={i} className="hover:bg-[#FBF9F5]/60 transition-colors">
-                <td className="py-2.5 px-4 font-medium text-[#1F2421]">
-                  <div>{r.label}</div>
-                  <div className="text-[10px] text-[#667085] font-normal">{r.desc}</div>
+              <tr
+                key={i}
+                className={i % 2 === 0 ? 'bg-[#151D29]/50 hover:bg-[#1C2634]' : 'bg-[#101722]/40 hover:bg-[#1C2634]'}
+              >
+                <td className="py-2 px-3">
+                  <div className="font-medium text-[#E8EDF4] text-xs">{r.label}</div>
+                  <div className="text-[10px] text-[#64748B]">{r.desc}</div>
                 </td>
-                <td className="py-2.5 px-4 font-mono text-[#1F2421]">
-                  {r.base.toFixed(1)} <span className="text-[10px] text-[#667085]">{r.unit}</span>
+                <td className="py-2 px-3 text-right font-mono text-xs text-[#94A3B8]">
+                  {r.isCost
+                    ? '₹0'
+                    : `${r.base.toFixed(1)} ${r.unit}`}
                 </td>
-                <td className="py-2.5 px-4">
-                  <div className="font-mono text-[#1F2421] font-semibold">
-                    {r.human.toFixed(1)} <span className="text-[10px] text-[#667085]">{r.unit}</span>
-                  </div>
-                  <div>{renderDelta(r.human, r.base, r.unit, r.lowerIsBetter)}</div>
+                <td className="py-2 px-3 text-right font-mono text-xs">
+                  {r.isCost ? (
+                    <span className="text-[#E8EDF4]">₹{(r.human / 100000).toFixed(1)}L</span>
+                  ) : (
+                    <div className="space-y-0.5">
+                      <div className="text-[#E8EDF4]">{r.human.toFixed(1)} {r.unit}</div>
+                      <div>{renderDelta(r.human, r.base, r.unit, r.lowerIsBetter)}</div>
+                    </div>
+                  )}
                 </td>
-                <td className="py-2.5 px-4">
-                  <div className="font-mono text-[#1F2421] font-semibold">
-                    {r.ai.toFixed(1)} <span className="text-[10px] text-[#667085]">{r.unit}</span>
-                  </div>
-                  <div>{renderDelta(r.ai, r.base, r.unit, r.lowerIsBetter)}</div>
+                <td className="py-2 px-3 text-right font-mono text-xs">
+                  {r.isCost ? (
+                    <span className="text-[#E8EDF4]">₹{(r.ai / 100000).toFixed(1)}L</span>
+                  ) : (
+                    <div className="space-y-0.5">
+                      <div className="text-[#E8EDF4]">{r.ai.toFixed(1)} {r.unit}</div>
+                      <div>{renderDelta(r.ai, r.base, r.unit, r.lowerIsBetter)}</div>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
-
-            {/* Composite Score Row */}
-            <tr className="bg-[#FBF9F5] font-bold border-t-2 border-[#E5DEC9]">
-              <td className="py-3 px-4 text-[#1F2421]">
-                <div>Decision Score (0 - 100)</div>
-                <div className="text-[10px] text-[#667085] font-normal">
-                  Transparent multi-criteria weighting
-                </div>
-              </td>
-              <td className="py-3 px-4 font-mono text-base text-[#1F2421]">
-                {baseline.metrics.score_breakdown.total_score.toFixed(1)}
-              </td>
-              <td className="py-3 px-4">
-                <div
-                  className={`font-mono text-base font-bold ${
-                    human_proposal.metrics.score_breakdown.total_score >
-                    baseline.metrics.score_breakdown.total_score
-                      ? 'text-[#1B4332]'
-                      : 'text-[#1F2421]'
-                  }`}
-                >
-                  {human_proposal.metrics.score_breakdown.total_score.toFixed(1)}
-                </div>
-                <div className="text-[10px] text-[#667085] font-normal">
-                  Delay: {human_proposal.metrics.score_breakdown.delay_component}/35 | Spillover:{' '}
-                  {human_proposal.metrics.score_breakdown.spillover_penalty}/25
-                </div>
-              </td>
-              <td className="py-3 px-4">
-                <div
-                  className={`font-mono text-base font-bold ${
-                    ai_proposal.metrics.score_breakdown.total_score >
-                    baseline.metrics.score_breakdown.total_score
-                      ? 'text-blue-700'
-                      : 'text-[#1F2421]'
-                  }`}
-                >
-                  {ai_proposal.metrics.score_breakdown.total_score.toFixed(1)}
-                </div>
-                <div className="text-[10px] text-[#667085] font-normal">
-                  Delay: {ai_proposal.metrics.score_breakdown.delay_component}/35 | Spillover:{' '}
-                  {ai_proposal.metrics.score_breakdown.spillover_penalty}/25
-                </div>
-              </td>
-            </tr>
           </tbody>
         </table>
-      </div>
-
-      {/* Modeling & Evidence Transparency Notice */}
-      <div className="bg-[#FBF9F5] border-t border-[#E5DEC9] px-4 py-2 text-[11px] text-[#667085] flex flex-wrap items-center justify-between gap-2">
-        <span className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#1B4332]" />
-          <span>
-            <strong>Evaluation Basis:</strong> Identical demand scenario, calibrated BPR delay, Webster signal equations, and multi-path Logit equilibrium.
-          </span>
-        </span>
-        <span className="text-[10px] text-[#98A2B3]">
-          Modeled peak trips &bull; Illustrative planning cost estimates
-        </span>
       </div>
     </div>
   );
