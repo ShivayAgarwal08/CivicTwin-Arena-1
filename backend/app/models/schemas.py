@@ -145,6 +145,10 @@ class AlternativeMetrics(BaseModel):
     estimated_cost_inr_lakhs: float
     spillover_counts: Dict[str, int]
     score_breakdown: ScoreBreakdown
+    total_demand_vehicles: Optional[float] = None
+    served_vehicles: Optional[float] = None
+    queued_vehicles: Optional[float] = None
+    unserved_vehicles: Optional[float] = None
 
 
 class AlternativeResult(BaseModel):

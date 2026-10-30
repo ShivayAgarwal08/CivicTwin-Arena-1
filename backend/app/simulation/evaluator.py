@@ -253,10 +253,31 @@ class TrafficScenarioEvaluator:
             sum(r.queue_vehicles * (r.delay_sec_per_veh) for r in active_links) / max(1.0, tot_queue_veh), 1
         ) if tot_queue_veh > 0 else 0.0
 
-        # Throughput: Total demand served minus vehicles remaining trapped in oversaturated bottlenecks or disconnected
+        # Throughput & Vehicle Conservation Calculation
+        # Duration of simulation peak period in hours:
+        duration_hr = max(0.1, demand_scenario.peak_duration_min / 60.0)
+
+        # 1. Total demand entering or desiring to travel over period T:
         total_demand_vph = sum(od.flow_vph for od in demand_scenario.od_flows)
-        total_bottleneck_queue_rate = sum(r.queue_vehicles for r in active_links if r.vc_ratio > 1.0)
-        throughput_vph = round(max(0.0, total_demand_vph - total_bottleneck_queue_rate - unserved_demand_vph), 0)
+        total_demand_veh = round(total_demand_vph * duration_hr, 1)
+
+        # 2. Demand severed by disconnected routes (closures without detour):
+        unserved_vph = unserved_demand_vph
+        unserved_veh = round(unserved_vph * duration_hr, 1)
+
+        # 3. Trapped vehicle rate in oversaturated bottlenecks (V > C):
+        # r.queue_vehicles is [vehicles] accumulated over duration_hr.
+        # Its rate is (V - C) [veh/hr].
+        connected_demand_vph = max(0.0, total_demand_vph - unserved_vph)
+        bottleneck_excess_rate_vph = sum(
+            max(0.0, r.volume_vph - r.capacity_vph) for r in active_links if r.vc_ratio > 1.0
+        )
+        trapped_flow_vph = min(connected_demand_vph, bottleneck_excess_rate_vph)
+        queued_veh = round(trapped_flow_vph * duration_hr, 1)
+
+        # 4. Successfully served throughput:
+        throughput_vph = round(max(0.0, connected_demand_vph - trapped_flow_vph), 0)
+        served_veh = round(throughput_vph * duration_hr, 1)
 
         # Average V/C ratio
         avg_vc = round(sum(r.vc_ratio for r in active_links) / max(1, len(active_links)), 2)
@@ -341,6 +362,10 @@ class TrafficScenarioEvaluator:
             estimated_cost_inr_lakhs=round(cost_lakhs, 2),
             spillover_counts=spillover_counts,
             score_breakdown=score_breakdown,
+            total_demand_vehicles=total_demand_veh,
+            served_vehicles=served_veh,
+            queued_vehicles=queued_veh,
+            unserved_vehicles=unserved_veh,
         )
 
         return AlternativeResult(
@@ -416,12 +441,20 @@ class TrafficScenarioEvaluator:
         ]
         # Sort descending by score
         scores.sort(key=lambda x: x[1], reverse=True)
-        winner_type = scores[0][0]
 
-        # Tie-breaker within 0.8 points: check total network delay
-        if abs(scores[0][1] - scores[1][1]) < 0.8:
-            if scores[0][2].metrics.total_network_delay_veh_hours > scores[1][2].metrics.total_network_delay_veh_hours:
-                winner_type = scores[1][0]
+        # Multi-candidate tie-breaker:
+        # If the top alternatives are tied or separated by less than 0.8 points,
+        # resolve by selecting the alternative that minimizes physical network delay (total_network_delay_veh_hours).
+        top_score = scores[0][1]
+        tied_candidates = [s for s in scores if abs(s[1] - top_score) < 0.8]
+        if len(tied_candidates) > 1:
+            best_candidate = min(
+                tied_candidates,
+                key=lambda s: s[2].metrics.total_network_delay_veh_hours
+            )
+            winner_type = best_candidate[0]
+        else:
+            winner_type = scores[0][0]
 
         # Synthesize transparent rationale and trade-offs
         trade_offs = []
@@ -491,9 +524,11 @@ class TrafficScenarioEvaluator:
         )
 
         limitations = [
-            "Link travel times are estimated via macroscopic BPR curves and Webster signal delay, not micro-simulation car-following physics.",
-            "Demand counts reflect calibrated modeled peak-hour trips; individual day-to-day fluctuations may vary with weather or special events.",
-            "Cost estimates are preliminary planning figures based on regional municipal schedule of rates and do not replace detailed engineering estimates.",
+            "Link travel times are estimated via macroscopic BPR curves and Webster signal delay approximations, not microscopic car-following simulations or continuous field observations.",
+            "Queue length is a simplified deterministic backlog estimate (excess flow * duration * 7.5m/veh); it does not model dynamic shockwave propagation or physical spillback blocking upstream intersections.",
+            "Congestion duration is an engineering approximation assuming a 40% post-peak capacity queue dissipation rate, rather than real-time monitored incident clearance.",
+            "Demand counts represent scenario planning inputs; they should not be construed as continuous empirical sensor observations.",
+            "Cost figures are indicative planning estimates based on standard municipal rate schedules and require detailed site engineering prior to procurement.",
         ]
 
         return ComparisonReport(
