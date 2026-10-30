@@ -1,0 +1,161 @@
+{
+  "investigation_1": {
+    "jiit_sec128_noida": {
+      "location": "JIIT Sector 128 & Wish Town Corridor, Noida",
+      "as_is": {
+        "winner": "AI",
+        "baseline_score": 77.5,
+        "human_score": 77.4,
+        "ai_score": 87.5,
+        "ai_title": "AI Alternative: Coordinated Signal Split & Median Channelization"
+      },
+      "civil_vs_ai": {
+        "winner": "AI",
+        "human_delay": 11.0,
+        "human_cost_lakhs": 35.0,
+        "human_score": 82.1,
+        "ai_delay": 9.9,
+        "ai_cost_lakhs": 3.3,
+        "ai_score": 87.5,
+        "ai_title": "AI Alternative: Coordinated Signal Split & Median Channelization"
+      },
+      "identical_interventions": {
+        "winner": "HUMAN",
+        "human_score": 87.5,
+        "ai_score": 87.5,
+        "score_difference": 0.0,
+        "tie_breaker_winner": "HUMAN"
+      }
+    },
+    "botanical_garden_noida": {
+      "location": "Botanical Garden Metro Interchange Corridor, Noida",
+      "as_is": {
+        "winner": "AI",
+        "baseline_score": 77.5,
+        "human_score": 77.6,
+        "ai_score": 89.9,
+        "ai_title": "AI Alternative: Coordinated Signal Split & Median Channelization"
+      },
+      "civil_vs_ai": {
+        "winner": "AI",
+        "human_delay": 19.8,
+        "human_cost_lakhs": 35.0,
+        "human_score": 82.5,
+        "ai_delay": 16.4,
+        "ai_cost_lakhs": 3.3,
+        "ai_score": 89.9,
+        "ai_title": "AI Alternative: Coordinated Signal Split & Median Channelization"
+      },
+      "identical_interventions": {
+        "winner": "HUMAN",
+        "human_score": 89.9,
+        "ai_score": 89.9,
+        "score_difference": 0.0,
+        "tie_breaker_winner": "HUMAN"
+      }
+    },
+    "sec62_electronic_city_noida": {
+      "location": "Noida Sector 62 & Electronic City Metro Corridor",
+      "as_is": {
+        "winner": "AI",
+        "baseline_score": 77.5,
+        "human_score": 77.6,
+        "ai_score": 80.1,
+        "ai_title": "AI Alternative: Coordinated Signal Split & Median Channelization"
+      },
+      "civil_vs_ai": {
+        "winner": "AI",
+        "human_delay": 9.8,
+        "human_cost_lakhs": 35.0,
+        "human_score": 75.8,
+        "ai_delay": 9.7,
+        "ai_cost_lakhs": 3.3,
+        "ai_score": 80.1,
+        "ai_title": "AI Alternative: Coordinated Signal Split & Median Channelization"
+      },
+      "identical_interventions": {
+        "winner": "HUMAN",
+        "human_score": 80.1,
+        "ai_score": 80.1,
+        "score_difference": 0.0,
+        "tie_breaker_winner": "HUMAN"
+      }
+    }
+  },
+  "investigation_2": {
+    "case_2_1_zero_zero": {
+      "baseline_queue_m": 0.0,
+      "proposal_queue_m": 0.0,
+      "queue_component_score": 25.0,
+      "total_score": 95.0,
+      "is_nan_or_inf": false
+    },
+    "case_2_2_zero_base_pos_prop": {
+      "baseline_queue_m": 0.0,
+      "proposal_queue_m": 2250.0,
+      "queue_component_score": 0.0,
+      "total_score": 27.0,
+      "is_nan_or_inf": false
+    },
+    "case_2_3_pos_base_zero_prop": {
+      "baseline_queue_m": 2250.0,
+      "proposal_queue_m": 0.0,
+      "queue_component_score": 25.0,
+      "total_score": 95.0,
+      "is_nan_or_inf": false
+    }
+  },
+  "investigation_3": {
+    "demand_limited": {
+      "before": {
+        "demand_vph": 800.0,
+        "capacity_vph": 1500.0,
+        "throughput_vph": 800.0,
+        "queued_vehicles": 0.0
+      },
+      "after_capacity_boost": {
+        "demand_vph": 800.0,
+        "capacity_vph": 2600.0,
+        "throughput_vph": 800.0,
+        "queued_vehicles": 0.0,
+        "throughput_delta": 0.0
+      }
+    },
+    "capacity_limited": {
+      "before": {
+        "demand_vph": 1800.0,
+        "capacity_vph": 1200.0,
+        "throughput_vph": 1200.0,
+        "queued_vehicles": 600.0
+      },
+      "after_capacity_boost": {
+        "demand_vph": 1800.0,
+        "capacity_vph": 2300.0,
+        "throughput_vph": 1800.0,
+        "queued_vehicles": 0.0,
+        "throughput_delta": 600.0
+      }
+    }
+  },
+  "investigation_4": {
+    "formula": "queue_length_m = queue_vehicles * vehicle_effective_length_m",
+    "vehicle_effective_length_m": 7.5,
+    "lanes_in_formula": false,
+    "physical_storage_modeled": false,
+    "spillback_blocking_modeled": false,
+    "status": "Illustrative deterministic queue estimate; not physically validated 2D multi-lane storage."
+  },
+  "investigation_5": {
+    "plan_x_delay_human": 13.3,
+    "plan_x_delay_ai": 13.3,
+    "plan_x_score_human": 76.4,
+    "plan_x_score_ai": 76.4,
+    "plan_x_difference": 0.0,
+    "plan_y_delay_ai": 13.5,
+    "plan_y_delay_human": 13.5,
+    "plan_y_score_ai": 72.7,
+    "plan_y_score_human": 72.7,
+    "plan_y_difference": 0.0,
+    "identity_neutrality_verified": true
+  }
+}
