@@ -200,6 +200,17 @@ export const MapWorkspace: React.FC<MapWorkspaceProps> = ({
           className: 'leaflet-custom-tooltip',
         }
       );
+
+      // Midpoint Name Badge (ensures road network labels are visible without requiring hover)
+      const midIdx = Math.floor(latLngs.length / 2);
+      const midPoint = latLngs[midIdx];
+      const roadBadge = L.divIcon({
+        className: 'road-label-container',
+        html: `<div style="transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.93); border: 1px solid #CBD5E1; color: #0F172A; font-size: 9px; font-weight: 700; padding: 1.5px 6px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); white-space: nowrap; pointer-events: none; letter-spacing: -0.01em;">${l.name}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
+      L.marker(midPoint, { icon: roadBadge, interactive: false }).addTo(group);
     });
 
     // Draw intersection nodes

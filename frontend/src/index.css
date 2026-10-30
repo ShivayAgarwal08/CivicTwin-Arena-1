@@ -44,3 +44,26 @@
 .leaflet-tooltip-right:before {
   border: none !important;
 }
+
+/* Print Stylesheet for Decision Brief */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  header, aside, main, .no-print {
+    display: none !important;
+  }
+  .fixed.inset-0 {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  .max-w-3xl {
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}

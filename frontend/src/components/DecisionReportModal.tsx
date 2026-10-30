@@ -120,6 +120,63 @@ export const DecisionReportModal: React.FC<DecisionReportModalProps> = ({
           </div>
         </div>
 
+        {/* Score Breakdown & Vehicle Conservation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div className="bg-[#FBF9F5] border border-[#E5DEC9] p-3 rounded-xl space-y-1.5">
+            <span className="font-bold text-[#1F2421] text-[10px] uppercase tracking-wider block">
+              Multi-Criteria Decision Score ({winningResult.metrics.score_breakdown.total_score.toFixed(1)} / 100)
+            </span>
+            <div className="grid grid-cols-4 gap-1.5 text-center text-[10px]">
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-[#667085] block">Delay</span>
+                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.delay_component.toFixed(1)}/35</span>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-[#667085] block">Queue</span>
+                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.queue_component.toFixed(1)}/25</span>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-[#667085] block">Spillover</span>
+                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.spillover_penalty.toFixed(1)}/25</span>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-[#667085] block">Cost</span>
+                <span className="font-bold text-[#1F2421]">{winningResult.metrics.score_breakdown.cost_penalty.toFixed(1)}/15</span>
+              </div>
+            </div>
+            <p className="text-[10px] text-[#667085] italic pt-0.5">
+              {winningResult.metrics.score_breakdown.formula_explanation}
+            </p>
+          </div>
+
+          <div className="bg-[#FBF9F5] border border-[#E5DEC9] p-3 rounded-xl space-y-1.5">
+            <span className="font-bold text-[#1F2421] text-[10px] uppercase tracking-wider block">
+              Peak Vehicle Conservation Balance
+            </span>
+            <div className="grid grid-cols-4 gap-1.5 text-center text-[10px]">
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-[#667085] block">Demand</span>
+                <span className="font-bold text-[#1F2421]">{winningResult.metrics.total_demand_vehicles ?? winningResult.metrics.network_throughput_vph} veh</span>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-emerald-700 block">Served</span>
+                <span className="font-bold text-emerald-700">{winningResult.metrics.served_vehicles ?? winningResult.metrics.network_throughput_vph} veh</span>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-amber-700 block">Queued</span>
+                <span className="font-bold text-amber-700">{winningResult.metrics.queued_vehicles ?? 0} veh</span>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-[#E5DEC9]">
+                <span className="text-red-700 block">Unserved</span>
+                <span className="font-bold text-red-700">{winningResult.metrics.unserved_vehicles ?? 0} veh</span>
+              </div>
+            </div>
+            <p className="text-[10px] text-[#667085] pt-0.5">
+              Balance: Demand = Served ({winningResult.metrics.served_vehicles ?? winningResult.metrics.network_throughput_vph}) + Queued ({winningResult.metrics.queued_vehicles ?? 0}) + Unserved ({winningResult.metrics.unserved_vehicles ?? 0})
+            </p>
+          </div>
+        </div>
+
         {/* Key Trade-Offs Identified */}
         <div>
           <h4 className="text-xs font-bold text-[#1F2421] uppercase tracking-wider mb-2.5">

@@ -195,3 +195,4 @@ def test_investigation_5_author_identity_neutrality(evaluator):
     # Compare metrics of Plan Y under both configurations
     assert rep_fwd.ai_proposal.metrics.avg_vehicle_delay_sec == rep_rev.human_proposal.metrics.avg_vehicle_delay_sec
     assert rep_fwd.ai_proposal.metrics.score_breakdown.total_score == rep_rev.human_proposal.metrics.score_breakdown.total_score
+

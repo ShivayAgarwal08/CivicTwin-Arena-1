@@ -128,7 +128,7 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     },
     {
       label: 'Estimated Capital Cost',
-      unit: 'Lakhs ₹',
+      unit: '₹ Lakhs',
       base: 0,
       human: human_proposal.metrics.estimated_cost_inr_lakhs,
       ai: ai_proposal.metrics.estimated_cost_inr_lakhs,
